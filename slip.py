@@ -11,10 +11,10 @@ from types import MethodType
 #sys.path.pop(0)
 import slippery
 from slippery.file import File
-from slippery.functions import *
 
-def extra(self, value=None):
-	return 'extra'
+#def extra(self, value=None):
+#	return 'extra'
+#locus.rare_codons = MethodType(rare_codons, locus)
 
 def is_valid_file(x):
 	if not os.path.exists(x):
@@ -31,10 +31,10 @@ if __name__ == '__main__':
 
 	fp = File(args.infile)
 	for name,locus in fp.items():
-		#locus.rare_codons = MethodType(rare_codons, locus)
 		#for feature in locus:
 		#	print(feature, feature.more())
-		#print(locus.rare_codons())
+		print(locus.rare_codons())
+		locus.check_genes()
 		locus.write(args.outfile)
 	
 
