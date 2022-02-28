@@ -43,7 +43,9 @@ for filename in os.listdir(filepath):
 					print(col[5][left:right], flush=True, sep='\t')
 					#print(name, distance, seq, flush=True, sep='\t')
 					#print(seq, flush=True, sep='\t')
+					j = 0
 					for hit,value in hits[(name,len(seq))].items():
+						j += 1
 						qstart = int(value[7])
 						offset = value[13][0:left-qstart].count('-')
 						#print(hit[left-qstart+1+offset:right-qstart+1+offset], offset)
@@ -52,6 +54,7 @@ for filename in os.listdir(filepath):
 						#print(a)
 						#print(b)
 						pad = ""
+						#print(">seq" + "_" + name + "_" + str(len(seq)) + '_hit_' + str(j))
 						for c1,c2 in zip(a,b):
 							if c1 != '-':
 								print(c2, end='')
@@ -59,5 +62,4 @@ for filename in os.listdir(filepath):
 								pad += "-"
 						print(pad)
 					print()
-					exit()
 			#	print("%s.gbk -s %s..%s -d %s" % (name, pairs[0][1]-10, pairs[1][0]+10, col[3]) )

@@ -96,22 +96,27 @@ class Locus(Locus):
 		return sites
 
 	def check_genes(self):
-		for _last, _curr, _next in previous_and_next(sorted(self)):
-			if _last is None or (_last.type != 'CDS') or (_curr.type != 'CDS'):
+		_last = _curr = None
+		for _, _, _next in previous_and_next(sorted(self)):
+			#if _last is None or (_last.type != 'CDS') or (_curr.type != 'CDS'):
+			if _next is None or _next.type != 'CDS':
+				# ignore any features that are not CDS
 				pass
-			elif _last.strand != _curr.strand:
-				print('diff')
-				pass
-			elif _last.frame('right') != _curr.frame('left'):
-				print('HERE')
-				die()
-				seq = self.seq(_last.right()-30 , _curr.left()+32)
-				self.add_feature('hexa', +1, [_last.right(),_last.right()+6])
-				if has(is_hexa, seq, 6):
-					self.add_feature('hexa', +1, [_last.right(),_last.right()+6])
+			elif _last is None:
+				_last = _curr
+				_curr = _next
 			else:
 				print(_last)
-				die()
+				print(_curr)
+				print(_next)
+				exit()
+				if _last.strand == _curr.strand:
+				#elif _last.frame('right') != _curr.frame('left'):
+					seq = self.seq(_last.right()-30 , _curr.left()+32)
+					if has(is_hexa, seq, 6):
+						self.add_feature('hexa', +1, [[_last.right(),_last.right()+6]] )
+				_last = _curr
+				_curr = _next
 
 
 

@@ -69,18 +69,20 @@ sets = dict()
 seqs = list()
 with open(sys.argv[1]) as fp:
 	for line in fp:
-		cols = line.rstrip().split('\t')
-		seq = cols[2][20:]
+		col = line.rstrip().split('\t')
+		seq = col[14]
 		seqs.append(seq)
-		kind[seq] = cols[1]
+		kind[seq] = col[1]
 #--- done with seqs ---#
+
+'''
 for seq in seqs:
 	print(seq, end='\t')
 	for func,k in [(is_same,6), (is_twofive,7),(is_hexa,6),(is_same,5),(is_twofour,6),(is_same,4)]:
 		print(has(func, seq, k), end='\t')
 	print()
 exit()
-
+'''
 
 sets['six'] = find_motif(is_same, seqs, 6)
 sets['fivetwo'] = find_motif(is_twofive, seqs, 7)
@@ -92,12 +94,11 @@ sets['repeat'] = find_motif(is_repeated, seqs, 9)
 
 for key,value in sets.items():
 	counts = dict()
-	for seq in value:
-		counts[kind[seq]] = counts.get(kind[seq], 0) + 1
+	#for seq in value:
+	#	counts[kind[seq]] = counts.get(kind[seq], 0) + 1
 	print(key, len(value), counts)
 print('other', len(seqs))
 
-exit()
 for i,seq in enumerate(seqs):
 	print(">seq", i, sep='')
 	print(seq)

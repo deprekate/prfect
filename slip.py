@@ -33,7 +33,7 @@ if __name__ == '__main__':
 	for name,locus in fp.items():
 		#for feature in locus:
 		#	print(feature, feature.more())
-		print(locus.rare_codons())
+		#print(locus.rare_codons())
 		locus.check_genes()
 		locus.write(args.outfile)
 	
