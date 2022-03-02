@@ -4,6 +4,6 @@ default:
 clean:
 	rm -fr build
 	rm -fr dist
-	rm -fr slippery.egg-info
-	pip uninstall slipery -y
+	rm -fr prfect.egg-info
+	pip uninstall prfect -y
 

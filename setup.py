@@ -12,7 +12,7 @@ from distutils import sysconfig
 
 sources = ""
 
-module = Extension('slippery',
+module = Extension('prfect',
 			language='c++',
 			extra_compile_args=['-g'],
 			extra_link_args=['-lm'],
@@ -36,15 +36,15 @@ def get_version():
 
 def main():
 	setup (
-		name = 'slippery',
+		name = 'prfect',
 		version = get_version(),
 		author = "Katelyn McNair",
 		author_email = "deprekate@gmail.com",
-		description = 'A tool to predict slippery sequences',
+		description = 'A tool to predict programmed ribosomal frameshifts',
 		long_description = readme(),
 		long_description_content_type="text/markdown",
-		url =  "https://github.com/deprekate/slippery",
-		scripts=['slippery.py'],
+		url =  "https://github.com/deprekate/prfect",
+		scripts=['prfect.py'],
 		classifiers=[
 			"Programming Language :: Python :: 3",
 			"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
