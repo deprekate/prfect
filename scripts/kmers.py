@@ -98,7 +98,7 @@ for key,value in sets.items():
 	#	counts[kind[seq]] = counts.get(kind[seq], 0) + 1
 	print(key, len(value), counts)
 print('other', len(seqs))
-
+exit()
 for i,seq in enumerate(seqs):
 	print(">seq", i, sep='')
 	print(seq)

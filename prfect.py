@@ -35,6 +35,7 @@ if __name__ == '__main__':
 		#	print(feature, feature.more())
 		#print(locus.rare_codons())
 		locus.check_genes()
-		locus.write(args.outfile)
+		#locus.write(args.outfile)
+		#locus.find_slips()
 	
 

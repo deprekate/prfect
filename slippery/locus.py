@@ -15,11 +15,27 @@ def previous_and_next(some_iterable):
 def count(dq, item):
     return sum(elem == item for elem in dq)
 
+def is_rbs(seq):
+	motif = 'aggagg'
+	match = 0
+	for a,b in zip(seq,motif):
+		if a==b:
+			match += 1
+	if match >= 5:
+		return True
+	else:
+		return False
+
 def is_hexa(seq):
 	if (seq[0] == seq[1] == seq[2]) and (seq[3] == seq[4] == seq[5]):
 		return True
 
-def is_twofour(seq):
+def is_five(seq):
+	if (seq[0] == seq[1] == seq[2] == seq[3] == seq[4]) or (seq[1] == seq[2] == seq[3] == seq[4] == seq[5]):
+		return True
+	return False
+
+def is_fourtwo(seq):
 	if (seq[0] == seq[1] ) and (seq[2] == seq[3] == seq[4] == seq[5]):
 		return True
 	elif (seq[0] == seq[1] == seq[2] == seq[3]) and (seq[4] == seq[5]):
@@ -29,11 +45,17 @@ def is_twofour(seq):
 def is_same(seq):
 	return seq == len(seq) * seq[0]
 
+def has_motif(seq):
+	if is_hexa(seq) or is_five(seq) or is_fourtwo(seq):
+		return True
+	else:
+		return False
+
 def has(motif, seq, k):
 	for i in range(len(seq)-k+1):
 		if motif(seq[i:i+k]):
-			return True
-	return False
+			return i
+	return None
 
 class Locus(Locus):
 	def construct_feature(self):
@@ -95,7 +117,23 @@ class Locus(Locus):
 						sites[i+j] = [motif] + mfes
 		return sites
 
+	def find_slips(self):
+		self.slips = [lambda : None] * self.length()
+		for i in range(self.length()-5):
+			seq = self.dna[i:i+6]
+			self.slips[i].motif = is_hexa(seq)
+		print(self.slips)
+
+	def look_for_slip(self, left, right, strand):
+		for i in range(left,right):
+			hexa = self.dna[i:i+6]
+			knot = self.dna[i+6+10:i+6+10+70]
+			if has_motif(hexa):
+				mfe = lf.fold(knot)
+				print(left,right,hexa, mfe[1])
+
 	def check_genes(self):
+		self.stops = ['taa','tga','tag']
 		_last = _curr = None
 		for _, _, _next in previous_and_next(sorted(self)):
 			#if _last is None or (_last.type != 'CDS') or (_curr.type != 'CDS'):
@@ -106,19 +144,29 @@ class Locus(Locus):
 				_last = _curr
 				_curr = _next
 			else:
-				print(_last)
-				print(_curr)
-				print(_next)
-				exit()
-				if _last.strand == _curr.strand:
-				#elif _last.frame('right') != _curr.frame('left'):
-					seq = self.seq(_last.right()-30 , _curr.left()+32)
+				if _last.strand == _curr.strand and _last.frame('right') != _curr.frame('left'):
+					# the left and right correspond to the min/max allowable between stop codons
+					#print(_last, _curr)
+					left = self.last(_curr.left()-1, _last.strand, self.stops) + 3
+					right = self.next(_last.right()-3, _last.strand, self.stops)
+					self.look_for_slip(left, right, _last.strand)
+					'''
 					if has(is_hexa, seq, 6):
-						self.add_feature('hexa', +1, [[_last.right(),_last.right()+6]] )
+						_curr.tags['__________hexa'] = True
+						#self.add_feature('hexa', +1, [[_last.right(),_last.right()+6]] )
+					i = has(is_rbs, seq, 6)
+					if i is not None:
+						_curr.tags['__________rbs'] = True
+						#self.add_feature('rbs', +1, [[_last.right()+i,_last.right()+i+6]] )
+					if seq:
+						mfe = lf.fold(seq)
+						_curr.tags['__________mfe'] = mfe[1]
+						#self.add_feature('mfe=' + str(mfe[1]), +1, [[_last.right(),_curr.left()]] )
+					'''	
 				_last = _curr
-				_curr = _next
-
-
+				if _curr.right() < _next.right():
+					# this is to skip CDS that completely overlap
+					_curr = _next
 
 	def heptamers(self):
 		for i in range(len(self.dna)-6):
