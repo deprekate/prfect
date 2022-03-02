@@ -1,7 +1,7 @@
 from itertools import zip_longest, chain, tee, islice
 
 from genbank.locus import Locus
-from slippery.feature import Feature
+from prfect.feature import Feature
 
 import numpy as np
 import LinearFold as lf

@@ -8,9 +8,9 @@ from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
 from types import MethodType
 
-#sys.path.pop(0)
-import slippery
-from slippery.file import File
+sys.path.pop(0)
+import prfect
+from prfect.file import File
 
 #def extra(self, value=None):
 #	return 'extra'
