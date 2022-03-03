@@ -1,10 +1,16 @@
+import os
 from itertools import zip_longest, chain, tee, islice
 
 from genbank.locus import Locus
 from prfect.feature import Feature
 
 import numpy as np
+
 import LinearFold as lf
+from hotknots import hotknots as hk
+# initialize everything first
+params = os.path.dirname(hk.__file__)
+hk.initialize( 'DP', os.path.join(params,"parameters_DP09.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 
 def previous_and_next(some_iterable):
 	prevs, items, nexts = tee(some_iterable, 3)
@@ -129,15 +135,16 @@ class Locus(Locus):
 			hexa = self.dna[i:i+6]
 			knot = self.dna[i+6+10:i+6+10+70]
 			if has_motif(hexa):
-				mfe = lf.fold(knot)
-				print(left,right,hexa, mfe[1])
+				mfe0 = lf.fold(knot)
+				mfe = hk.fold(knot.upper(), 'CC')
+				print(left,right,hexa, mfe0[1], mfe[1])
 
 	def check_genes(self):
 		self.stops = ['taa','tga','tag']
 		_last = _curr = None
 		for _, _, _next in previous_and_next(sorted(self)):
 			#if _last is None or (_last.type != 'CDS') or (_curr.type != 'CDS'):
-			if _next is None or _next.type != 'CDS':
+			if _next is None or _next.type != 'CDS' or len(_next.pairs) > 1:
 				# ignore any features that are not CDS
 				pass
 			elif _last is None:
@@ -146,9 +153,10 @@ class Locus(Locus):
 			else:
 				if _last.strand == _curr.strand and _last.frame('right') != _curr.frame('left'):
 					# the left and right correspond to the min/max allowable between stop codons
-					#print(_last, _curr)
-					left = self.last(_curr.left()-1, _last.strand, self.stops) + 3
+					left = self.last(_curr.left()-1, _last.strand, self.stops)
+					left = left + 3 if left else _curr.frame('left') - 1
 					right = self.next(_last.right()-3, _last.strand, self.stops)
+					right = right if right else self.length()
 					self.look_for_slip(left, right, _last.strand)
 					'''
 					if has(is_hexa, seq, 6):
