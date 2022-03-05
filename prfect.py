@@ -7,6 +7,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
 from types import MethodType
+from termcolor import colored
 
 sys.path.pop(0)
 import prfect
@@ -33,7 +34,7 @@ if __name__ == '__main__':
 	for name,locus in fp.items():
 		#for feature in locus:
 		#	print(feature, feature.more())
-		#print(locus.rare_codons())
+		#locus.rare_codons()
 		locus.check_genes()
 		#locus.write(args.outfile)
 		#locus.find_slips()

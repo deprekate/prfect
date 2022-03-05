@@ -1,5 +1,6 @@
 import os
 from itertools import zip_longest, chain, tee, islice
+from termcolor import colored
 
 from genbank.locus import Locus
 from prfect.feature import Feature
@@ -10,7 +11,7 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 params = os.path.dirname(hk.__file__)
-hk.initialize( 'DP', os.path.join(params,"parameters_DP09.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
+hk.initialize( 'CC', os.path.join(params,"parameters_CC06.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 
 def previous_and_next(some_iterable):
 	prevs, items, nexts = tee(some_iterable, 3)
@@ -108,21 +109,6 @@ class Locus(Locus):
 			#	print(i+j+1, self.dna[i+j:i+j+3], counts[i+j])
 		exit()
 
-	def hold(self, spacer=10):
-		sites  = dict()
-		for i in range(len(self.dna)-34):
-			motif = self.dna[i:i+7]
-			if is_hexa(motif, +1):
-				mfes = []
-				for j in range(0,30,3):
-					seq = self.dna[ i+j+spacer : i+j+spacer+36]
-					_,mfe = lf.fold( seq )
-					mfes.append(mfe)	
-				if has_outlier(mfes):
-					for j in range(50):
-						sites[i+j] = [motif] + mfes
-		return sites
-
 	def find_slips(self):
 		self.slips = [lambda : None] * self.length()
 		for i in range(self.length()-5):
@@ -131,32 +117,48 @@ class Locus(Locus):
 		print(self.slips)
 
 	def look_for_slip(self, left, right, strand):
-		for i in range(left,right):
+		for i in range(left,right,3):
 			hexa = self.dna[i:i+6]
-			knot = self.dna[i+6+10:i+6+10+70]
+			knot = self.dna[i+6+1:i+6+10+70]
 			if has_motif(hexa):
 				mfe0 = lf.fold(knot)
 				mfe = hk.fold(knot.upper(), 'CC')
-				print(left,right,hexa, mfe0[1], mfe[1])
+				print(left,right,hexa, end='\t')
+				mfe0[1] = mfe0[1] / (right-i)
+				if mfe0[1] < -30:
+					print(colored(mfe0[1], 'red'), end='\t')
+				else:
+					print(mfe0[1], end='\t')
+				if mfe[1] < -20:
+					print( colored(mfe[1], 'red'))
+				else:
+					print(mfe[1])
 
 	def check_genes(self):
 		self.stops = ['taa','tga','tag']
 		_last = _curr = None
 		for _, _, _next in previous_and_next(sorted(self)):
 			#if _last is None or (_last.type != 'CDS') or (_curr.type != 'CDS'):
-			if _next is None or _next.type != 'CDS' or len(_next.pairs) > 1:
+			if _next is None or _next.type != 'CDS':
 				# ignore any features that are not CDS
 				pass
 			elif _last is None:
 				_last = _curr
 				_curr = _next
+			elif len(_next.pairs) == 2:
+				if _next.pairs[1][0] != '1':
+					left = self.last(int(_next.pairs[1][1])-6, _next.strand, self.stops)
+					left = left + 3 if left else _next.frame('right') - 1
+					right = self.next(int(_next.pairs[0][0])+5, _next.strand, self.stops)
+					right = right if right else self.length()
+					self.look_for_slip(left, right, _next.strand)
 			else:
 				if _last.strand == _curr.strand and _last.frame('right') != _curr.frame('left'):
 					# the left and right correspond to the min/max allowable between stop codons
 					left = self.last(_curr.left()-1, _last.strand, self.stops)
 					left = left + 3 if left else _curr.frame('left') - 1
 					right = self.next(_last.right()-3, _last.strand, self.stops)
-					right = right if right else self.length()
+					right = right-3 if right else self.length()
 					self.look_for_slip(left, right, _last.strand)
 					'''
 					if has(is_hexa, seq, 6):
