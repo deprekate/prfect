@@ -69,6 +69,15 @@ class Locus(Locus):
 		'''this method allows for a Feature class to be modified through inheritance in other code '''
 		return Feature
 
+	def gc_content(self):
+		if not hasattr(self, "gc"):
+			a = self.dna.count('a')
+			c = self.dna.count('c')
+			g = self.dna.count('g')
+			t = self.dna.count('t')
+			self.gc = (c+g) / (a+c+g+t)
+		return self.gc
+
 	def rare_codons(self):	
 		pool_size = 1000
 		codons = {a+b+c : 1 for a in 'acgt' for b in 'acgt' for c in 'acgt'}
@@ -123,8 +132,8 @@ class Locus(Locus):
 			if has_motif(hexa):
 				mfe0 = lf.fold(knot)
 				mfe = hk.fold(knot.upper(), 'CC')
-				print(left,right,hexa, end='\t')
-				mfe0[1] = mfe0[1] / (right-i)
+				print(self.gc_content(), left, right, hexa, sep='\t', end='\t')
+				mfe0[1] = mfe0[1] #/ (right-i)
 				if mfe0[1] < -30:
 					print(colored(mfe0[1], 'red'), end='\t')
 				else:
@@ -146,7 +155,7 @@ class Locus(Locus):
 				_last = _curr
 				_curr = _next
 			elif len(_next.pairs) == 2:
-				if _next.pairs[1][0] != '1':
+				if _next.left() < _next.right():
 					left = self.last(int(_next.pairs[1][1])-6, _next.strand, self.stops)
 					left = left + 3 if left else _next.frame('right') - 1
 					right = self.next(int(_next.pairs[0][0])+5, _next.strand, self.stops)

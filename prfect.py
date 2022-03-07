@@ -10,7 +10,7 @@ from types import MethodType
 from termcolor import colored
 
 sys.path.pop(0)
-import prfect
+#import prfect
 from prfect.file import File
 
 #def extra(self, value=None):

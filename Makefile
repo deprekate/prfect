@@ -1,5 +1,5 @@
 default:
-	python3 setup.py install --user
+	pip install ../prfect/ --user
 
 clean:
 	rm -fr build
