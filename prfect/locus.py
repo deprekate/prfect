@@ -122,7 +122,7 @@ class Locus(Locus):
 			hexa = self.dna[i:i+6]
 			knot = self.dna[i+6+1:i+6+10+70]
 			if has_motif(hexa):
-				dist = 10+log10((right-i)/3) if strand > 0 else 10+log10((i-left)/3)
+				dist = 10+log10(1+(right-i)/3) if strand > 0 else 10+log10(1+(i-left)/3)
 				mfe0 = lf.fold(knot)
 				mfe = hk.fold(knot.upper(), 'CC')
 				print(self.gc_content(), left, right, hexa, sep='\t', end='\t')
