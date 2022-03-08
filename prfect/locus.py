@@ -1,6 +1,7 @@
 import os
 from itertools import zip_longest, chain, tee, islice
 from termcolor import colored
+from math import log10
 
 from genbank.locus import Locus
 from prfect.feature import Feature
@@ -69,15 +70,6 @@ class Locus(Locus):
 		'''this method allows for a Feature class to be modified through inheritance in other code '''
 		return Feature
 
-	def gc_content(self):
-		if not hasattr(self, "gc"):
-			a = self.dna.count('a')
-			c = self.dna.count('c')
-			g = self.dna.count('g')
-			t = self.dna.count('t')
-			self.gc = (c+g) / (a+c+g+t)
-		return self.gc
-
 	def rare_codons(self):	
 		pool_size = 1000
 		codons = {a+b+c : 1 for a in 'acgt' for b in 'acgt' for c in 'acgt'}
@@ -130,15 +122,17 @@ class Locus(Locus):
 			hexa = self.dna[i:i+6]
 			knot = self.dna[i+6+1:i+6+10+70]
 			if has_motif(hexa):
+				dist = 10+log10((right-i)/3) if strand > 0 else 10+log10((i-left)/3)
 				mfe0 = lf.fold(knot)
 				mfe = hk.fold(knot.upper(), 'CC')
 				print(self.gc_content(), left, right, hexa, sep='\t', end='\t')
-				mfe0[1] = mfe0[1] #/ (right-i)
-				if mfe0[1] < -30:
+				mfe0[1] = mfe0[1] / self.gc_content() / dist
+				if mfe0[1] < -5: #(-30)
 					print(colored(mfe0[1], 'red'), end='\t')
 				else:
 					print(mfe0[1], end='\t')
-				if mfe[1] < -20:
+				mfe[1] = mfe[1] / self.gc_content() / dist
+				if mfe[1] < -5: #(-20 un normalized)
 					print( colored(mfe[1], 'red'))
 				else:
 					print(mfe[1])
