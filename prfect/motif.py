@@ -8,7 +8,9 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 params = os.path.dirname(hk.__file__)
-hk.initialize( 'CC', os.path.join(params,"parameters_CC06.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
+#hk.initialize( 'CC', os.path.join(params,"parameters_CC06.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
+#hk.initialize( 'CC', os.path.join(params,"CG_best_parameters_ISMB2007.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
+hk.initialize( 'CC', os.path.join(params, "parameters_DP09.txt" ) , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 
 def rround(item, n=4):
     try:
@@ -66,7 +68,7 @@ def is_four(seq):
 def has_motif(seq):
 	if is_hexa(seq) or is_fivetwo(seq):
 		return 0.001
-	elif is_twofour(seq) or is_threetwotwo(seq): # or is_ccgaaa(seq):
+	elif is_twofour(seq) or is_threetwotwo(seq) or is_five(seq): # or is_ccgaaa(seq):
 		return 0.004
 	return 1
 
@@ -98,38 +100,42 @@ class Motif(Locus):
 			for n, i in enumerate(range(right,left,-3)):
 				r = self.seq( i-19,    i,  strand)
 				a0 = self.seq(    i+1,  i+3,  strand)
-				a1 = self.seq(    i+2,  i+4,  strand)
+				a1 = self.seq(    i+1+d,  i+3+d,  strand)
 				p = self.seq(  i-2,    i,  strand)
 				p1 = self.seq(  i-2+d,    i+d,  strand)
 				e = self.seq(  i-5,  i-3,  strand)
 				m = self.seq(i-2+d, i+4+d, strand)
-				k = self.seq(i+4,i+84, strand)
+				k = self.seq(i+7,i+52, strand).upper().replace('T','U')
+				K = self.seq(i+7,i+77, strand).upper().replace('T','U')
 				#print(left,right, r, e,p,a, m)
 				#scoring
 				dist = 0 #sqrt(3*n) #10+log10(1+(right-i)/3)
-				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
 				gc = self.gc_content(k)
+				GC = self.gc_content(K)
+				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
+				name = self.name.ljust(10)
 				# BACKWARDS
 				if d < 0 and has_motif(m) < 1:
-					l = lf.fold(k)[1] / gc + dist
-					h = hk.fold(k.upper(), 'CC')[1] / gc + dist
-					out = [d, gc, left, right, r, m, s, a0, rarity(a0), rarity(a1),'none', l, h]
+					l = lf.fold(k)
+					l = l[1]/ (len(k)-l[0].count('.')) / gc
+					h = hk.fold(K, 'CC')[1] / len(K) / GC
+					out = [name, d, gc, left, right, n, r, m, s, a0, rarity(a0), rarity(a1),'none', l, h, self.v]
 					print("\t".join([ str(rround(item)) for item in out]))
 					return
 				# FORWARD
 				elif d > 0:
+					#print(e+p, is_five(e+p), a0, a1, rarity(a0), rarity(a1))
 					if a0 in self.stops:
 						pass
-					elif rarity(a1)/rarity(a0) > 1 and (is_four(p+a0)): # or a0=='ccc'):
-						l = lf.fold(k)[1] / gc + dist
-						h = hk.fold(k.upper(), 'CC')[1] / gc + dist
-						out = [d, gc, left, right, r, m, s, a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h]
+					elif rarity(a1)/rarity(a0) > 1 and (is_four(p+a0) or is_hexa(e+p) or is_five(e+p) ):
+						l = lf.fold(k)[1] / len(k) / gc
+						h = hk.fold(K, 'CC')[1] / len(K) / GC
+						out = [name, d, gc, left, right, n, r, m, s, a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, self.v]
 						print("\t".join([ str(rround(item)) for item in out]))
 						return
-						#print(k)
 		m = self.seq(_last.right() - 10, _last.right()+10, strand)
 		out = [d, self.gc_content(), left, right, m]
-		print("\t".join([ str(rround(item)) for item in out]))
+		#print("\t".join([ str(rround(item)) for item in out]))
 		return False
 				#	print(colored(mfe0[1], 'red'), end='\t')
 
