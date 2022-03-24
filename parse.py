@@ -29,6 +29,7 @@ for filename in os.listdir(filepath):
 					motif.v = True
 					motif.has_slip(_last,_curr)
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
+				#continue
 				if _last and _last.strand==feature.strand:
 					motif.v = False
 					motif.has_slip(_last,feature)
