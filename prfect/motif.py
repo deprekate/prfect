@@ -42,9 +42,14 @@ def is_fivetwo(seq):
 		return 0.001
 	return None
 
+def is_twofive(seq):
+	if (seq[0] == seq[1] ) and (seq[2] == seq[3] == seq[4] == seq[5] == seq[6]):
+		return 0.001
+	return None
+
 def is_twofour(seq):
 	if (seq[0] == seq[1] ) and (seq[2] == seq[3] == seq[4] == seq[5]):
-		return 0.04
+		return 0.004
 	return None
 
 def is_threetwotwo(seq):
@@ -52,8 +57,18 @@ def is_threetwotwo(seq):
 		return 0.004
 	return None
 
+def is_threetwo(seq):
+	if (seq[0] == seq[1] == seq[2]) and (seq[3] == seq[4]):
+		return 0.015
+	return None
+
 def is_same(seq):
 	return seq == len(seq) * seq[0]
+
+def is_six(seq):
+	if is_same(seq[:6]):
+		return 0.001
+	return None
 
 def is_five(seq):
 	if is_same(seq[:5]):
@@ -65,34 +80,43 @@ def is_four(seq):
 		return 0.015
 	return None
 
+def is_three(seq):
+	if is_same(seq[:3]):
+		return 0.06
+	return None
+
 def is_twoonethree(seq):
 	# too common
 	if (seq[0] == seq[1]) and (seq[3] == seq[4] == seq[5]):
 		return True
 	return False
 
+def is_twoonetwo(seq):
+	# too common
+	if (seq[0] == seq[1]) and (seq[3] == seq[4]):
+		return 0.01
+	return None
+
 def is_twoonefour(seq):
 	if (seq[0] == seq[1]) and (seq[3] == seq[4] == seq[5] == seq[6]):
-		return True
-	return False
-'''
-
-def is_twotwo(seq):
-	if (seq[0] == seq[1]) and (seq[3] == seq[4]):
-		return True
-	return False
-'''
+		return 0.004
+	return None
 
 def has_backward_motif(seq):
 	# these are the motifs to look for
-	for motif in [is_hexa, is_fivetwo, is_twofour, is_threetwotwo, is_five, is_twoonefour]:
+	for motif in [is_six, is_hexa, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]:
 		if motif(seq):
 			return (motif.__name__.ljust(15), motif(seq))
 	return None
 
 def has_forward_motif(seq):
-	if is_four(seq[3:7]):
-		return (is_four.__name__.ljust(15), 0.015)
+	# these are the motifs to look for
+	for motif in [is_hexa, is_threetwo]:
+		if motif(seq):
+			return (motif.__name__.ljust(15), motif(seq))
+	for motif in [is_four, is_three]:
+		if motif(seq[3:7]):
+			return (motif.__name__.ljust(15), motif(seq[3:7]))
 	return None
 
 def has(motif, seq):
@@ -170,16 +194,16 @@ class Motif(Locus):
 					l = lf.fold(k)
 					#l = l[1]/ (len(k)-l[0].count('.')) / gc
 					l = l[1]/ len(k) / gc
-					h = hk.fold(K, 'CC')[1] / len(K) / GC
-					out = [name, d, gc, left, right, _curr.left(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1),rarity(a1)/rarity(a0), l, h, has_backward_motif(e1+p1+a1)[0], self.v]
+					h = 1 #hk.fold(K, 'CC')[1] / len(K) / GC
+					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1),rarity(a1)/rarity(a0), l, h, has_backward_motif(e1+p1+a1)[0], self.v]
 					print("\t".join([ str(rround(item)) for item in out]))
 				# FORWARD
 				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
 					#rarity(a1)/rarity(a0) > 2 and (is_four(p0+a0) or is_hexa(p0+a0) or is_five(e0+p0) ):
 					#print(e+p, is_five(e+p), a0, a1, rarity(a0), rarity(a1))
 					l = lf.fold(k)[1] / len(k) / gc
-					h = hk.fold(K, 'CC')[1] / len(K) / GC
-					out = [name, d, gc, left, right, _curr.left(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, has_forward_motif(e0+p0+a0)[0], self.v]
+					h = 1 #hk.fold(K, 'CC')[1] / len(K) / GC
+					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, has_forward_motif(e0+p0+a0)[0], self.v]
 					print("\t".join([ str(rround(item)) for item in out]))
 					#return
 		#m = self.seq(_last.right() - 10, _last.right()+10, strand)
