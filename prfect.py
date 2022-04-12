@@ -34,7 +34,10 @@ if __name__ == '__main__':
 	for name,locus in fp.items():
 		#for feature in locus:
 		#	print(feature, feature.more())
-		#locus.rare_codons()
+		locus.codon_rarity('ccc')
+		for k, v in sorted(locus.rarity.items(), key=lambda item: item[1]):
+			print(k,round(v,5))
+
 		locus.check_genes()
 		#locus.find_rbs()
 		#locus.write(args.outfile)
