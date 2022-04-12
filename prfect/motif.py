@@ -188,6 +188,7 @@ class Motif(Locus):
 				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
 				#print(e1,p1,a1, i, _last.left())
 				nrange = [] # range(45,125,5):
+				jrange = [] #range(30):
 				# THIS IS TO CATCH END CASES
 				if i <= _last.left()+3:
 					pass
@@ -203,7 +204,7 @@ class Motif(Locus):
 					l = lf.fold(k)[1]/ len(k) / gc
 					out.append(l)
 					for n in nrange:
-						for j in range(30):
+						for j in jrange:
 							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
 							GC = self.gc_content(K)
 							h = hk.fold(K, model)[1] / len(K) / GC
@@ -220,7 +221,7 @@ class Motif(Locus):
 					l = l[1]/ len(k) / gc
 					out.append(l)
 					for n in nrange:
-						for j in range(30):
+						for j in jrange:
 							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
 							GC = self.gc_content(K)
 							h = hk.fold(K, model)[1] / len(K) / GC
