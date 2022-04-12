@@ -8,9 +8,10 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 params = os.path.dirname(hk.__file__)
+model = "CC"
 #hk.initialize( 'CC', os.path.join(params,"parameters_CC06.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 #hk.initialize( 'CC', os.path.join(params,"CG_best_parameters_ISMB2007.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
-hk.initialize( 'CC', os.path.join(params, "parameters_DP09.txt" ) , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
+hk.initialize( model, os.path.join(params, "parameters_DP03.txt" ) , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 
 def rround(item, n=4):
     try:
@@ -168,18 +169,39 @@ class Motif(Locus):
 				# BACKWARDS
 				elif d < 0 and has_backward_motif(e1+p1+a1) and lf.fold(k)[1] / len(k) / gc < -0.1:
 					l = lf.fold(k)
-					#l = l[1]/ (len(k)-l[0].count('.')) / gc
 					l = l[1]/ len(k) / gc
-					h = hk.fold(K, 'CC')[1] / len(K) / GC
-					out = [name, d, gc, left, right, _curr.left(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1),rarity(a1)/rarity(a0), l, h, has_backward_motif(e1+p1+a1)[0], self.v]
+					#l = l[1]/ (len(k)-l[0].count('.')) / gc
+					h = hk.fold(K, model)[1] / len(K) / GC
+					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1),rarity(a1)/rarity(a0), l, h, has_backward_motif(e1+p1+a1)[0], self.v]
+					k =  self.seq( i+1+5   , i+45+5   , strand).upper().replace('T','U')
+					gc = self.gc_content(k)
+					l = lf.fold(k)[1]/ len(k) / gc
+					out.append(l)
+					for n in range(45,125,5):
+						for j in range(30):
+							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							GC = self.gc_content(K)
+							h = hk.fold(K, model)[1] / len(K) / GC
+							out.append(h)
 					print("\t".join([ str(rround(item)) for item in out]))
 				# FORWARD
 				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
 					#rarity(a1)/rarity(a0) > 2 and (is_four(p0+a0) or is_hexa(p0+a0) or is_five(e0+p0) ):
 					#print(e+p, is_five(e+p), a0, a1, rarity(a0), rarity(a1))
 					l = lf.fold(k)[1] / len(k) / gc
-					h = hk.fold(K, 'CC')[1] / len(K) / GC
-					out = [name, d, gc, left, right, _curr.left(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, has_forward_motif(e0+p0+a0)[0], self.v]
+					h = hk.fold(K, model)[1] / len(K) / GC
+					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, has_forward_motif(e0+p0+a0)[0], self.v]
+					k =  self.seq( i+1+5   , i+45+5   , strand).upper().replace('T','U')
+					gc = self.gc_content(k)
+					l = lf.fold(k)
+					l = l[1]/ len(k) / gc
+					out.append(l)
+					for n in range(45,125,5):
+						for j in range(30):
+							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							GC = self.gc_content(K)
+							h = hk.fold(K, model)[1] / len(K) / GC
+							out.append(h)
 					print("\t".join([ str(rround(item)) for item in out]))
 					#return
 		#m = self.seq(_last.right() - 10, _last.right()+10, strand)

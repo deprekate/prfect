@@ -12,8 +12,10 @@ from prfect.motif import Motif
 
 
 filepath = sys.argv[1]
-for filename in os.listdir(filepath):
-	genbank = File(os.path.join(filepath, filename))
+#for filename in os.listdir(filepath):
+	#genbank = File(os.path.join(filepath, filename))
+if True:
+	genbank = File(filepath)
 	for name,locus in genbank.items():
 		motif = Motif(locus)
 		_last = _curr = None
