@@ -112,10 +112,10 @@ def has_backward_motif(seq):
 
 def has_forward_motif(seq):
 	# these are the motifs to look for
-	for motif in [is_hexa, is_threetwo]:
+	for motif in [is_hexa]: #, is_threetwo]:
 		if motif(seq):
 			return (motif.__name__.ljust(15), motif(seq))
-	for motif in [is_four, is_three]:
+	for motif in [is_four]: #, is_three]:
 		if motif(seq[3:7]):
 			return (motif.__name__.ljust(15), motif(seq[3:7]))
 	return None
@@ -187,6 +187,7 @@ class Motif(Locus):
 				GC = self.gc_content(K)
 				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
 				#print(e1,p1,a1, i, _last.left())
+				nrange = [] # range(45,125,5):
 				# THIS IS TO CATCH END CASES
 				if i <= _last.left()+3:
 					pass
@@ -201,7 +202,7 @@ class Motif(Locus):
 					gc = self.gc_content(k)
 					l = lf.fold(k)[1]/ len(k) / gc
 					out.append(l)
-					for n in range(45,125,5):
+					for n in nrange:
 						for j in range(30):
 							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
 							GC = self.gc_content(K)
@@ -210,8 +211,6 @@ class Motif(Locus):
 					print("\t".join([ str(rround(item)) for item in out]))
 				# FORWARD
 				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
-					#rarity(a1)/rarity(a0) > 2 and (is_four(p0+a0) or is_hexa(p0+a0) or is_five(e0+p0) ):
-					#print(e+p, is_five(e+p), a0, a1, rarity(a0), rarity(a1))
 					l = lf.fold(k)[1] / len(k) / gc
 					h = hk.fold(K, model)[1] / len(K) / GC
 					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, has_forward_motif(e0+p0+a0)[0], self.v]
@@ -220,7 +219,7 @@ class Motif(Locus):
 					l = lf.fold(k)
 					l = l[1]/ len(k) / gc
 					out.append(l)
-					for n in range(45,125,5):
+					for n in nrange:
 						for j in range(30):
 							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
 							GC = self.gc_content(K)
