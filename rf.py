@@ -45,16 +45,24 @@ if __name__ == '__main__':
 	# this removes duplicate positive TYPEs that are more than 10 bases away from annotated shift
 	df.loc[abs(df.I - df.CURRLEFT) > 10 ,'TYPE'] = 0
 
+	# this is to drop genomes that do not have a chaperone annotated
+	has = df.groupby('NAME')['TYPE'].any().to_frame('HAS')
+	df = df.merge(has, left_on='NAME', right_index=True)
+	df = df.loc[df.HAS,:]
+
+	#print(df) ; exit()
 
 	df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
 
 	take = [False] * len(df.columns)
-	for i in [1,10,17,18,19,20]:
+	#for i in [1,10,11,12,16,17,18,19,20]:
+	for i in [1,10,16,17,18,19,20]:
 		take[i] = True
 
 	for cluster in clusters:
 		#cluster = ['AikoCarson','Amok']
 		X_train = df.loc[~df['NAME'].isin(cluster),take]
+		#print(X_train) ; exit()
 		X_test  = df.loc[ df['NAME'].isin(cluster),take]
 		Y_train = df.loc[~df['NAME'].isin(cluster),:].TYPE
 		Y_test  = df.loc[ df['NAME'].isin(cluster),:].TYPE
