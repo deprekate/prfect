@@ -105,7 +105,7 @@ def is_twoonefour(seq):
 
 def has_backward_motif(seq):
 	# these are the motifs to look for
-	for motif in [is_six, is_hexa, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]:
+	for motif in [is_six, is_hexa, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour, is_twoonethree]:
 		if motif(seq):
 			return (motif.__name__.ljust(15), motif(seq))
 	return None
@@ -187,8 +187,9 @@ class Motif(Locus):
 				GC = self.gc_content(K)
 				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
 				#print(e1,p1,a1, i, _last.left())
-				nrange = [] # range(45,125,5):
-				jrange = [] #range(30):
+				#nrange = range(45,125,5)
+				nrange = range(45,85,5)
+				jrange = [0] #range(30)
 				# THIS IS TO CATCH END CASES
 				if i <= _last.left()+3:
 					pass
