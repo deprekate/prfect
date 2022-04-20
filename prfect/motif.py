@@ -7,11 +7,11 @@ import score_rbs
 import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
-params = os.path.dirname(hk.__file__)
+path = os.path.dirname(hk.__file__)
 model = "CC"
-#hk.initialize( 'CC', os.path.join(params,"parameters_CC06.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
-#hk.initialize( 'CC', os.path.join(params,"CG_best_parameters_ISMB2007.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
-hk.initialize( model, os.path.join(params, "parameters_DP03.txt" ) , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
+param = "parameters_CC09.txt"
+hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
+
 
 def rround(item, n=4):
     try:
@@ -60,7 +60,7 @@ def is_threetwotwo(seq):
 
 def is_threetwo(seq):
 	if (seq[0] == seq[1] == seq[2]) and (seq[3] == seq[4]):
-		return 0.015
+		return 0.0156
 	return None
 
 def is_same(seq):
@@ -78,24 +78,24 @@ def is_five(seq):
 
 def is_four(seq):
 	if is_same(seq[:4]):
-		return 0.015
+		return 0.0156
 	return None
 
 def is_three(seq):
 	if is_same(seq[:3]):
-		return 0.06
+		return 0.0625
 	return None
 
 def is_twoonethree(seq):
 	# too common
 	if (seq[0] == seq[1]) and (seq[3] == seq[4] == seq[5]):
-		return True
-	return False
+		return 0.0156
+	return None
 
 def is_twoonetwo(seq):
 	# too common
 	if (seq[0] == seq[1]) and (seq[3] == seq[4]):
-		return 0.01
+		return 0.0625
 	return None
 
 def is_twoonefour(seq):
@@ -115,7 +115,7 @@ def has_forward_motif(seq):
 	for motif in [is_hexa]: #, is_threetwo]:
 		if motif(seq):
 			return (motif.__name__.ljust(15), motif(seq))
-	for motif in [is_four]: #, is_three]:
+	for motif in [is_four, is_three]:
 		if motif(seq[3:7]):
 			return (motif.__name__.ljust(15), motif(seq[3:7]))
 	return None
@@ -177,55 +177,51 @@ class Motif(Locus):
 				e1 = self.seq( i-5+d , i-3+d  , strand)
 				p1 = self.seq( i-2+d , i+d    , strand)
 				a1 = self.seq( i+1+d , i+3+d  , strand)
+				# ratio
+				r0 = rarity(a0) ; r1 = rarity(a1)
+				ratio = r1/r0 if r0 else r1 * 100
 				#m0 = self.seq( i-2   , i+4    , strand)
 				#m1 = self.seq( i-2+d , i+4+d  , strand)
 				k =  self.seq( i+7   , i+52   , strand).upper().replace('T','U')
 				K =  self.seq( i+7   , i+77   , strand).upper().replace('T','U')
 				#scoring
 				dist = 0 #sqrt(3*n) #10+log10(1+(right-i)/3)
-				gc = self.gc_content(k)
-				GC = self.gc_content(K)
+				gc = self.gc_content()
+				#GC = self.gc_content(K)
 				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
-				#print(e1,p1,a1, i, _last.left())
-				#nrange = range(45,125,5)
-				nrange = range(45,85,5)
-				jrange = [0] #range(30)
+				nrange = range(30,95,5)
+				jrange = range(0,30,3)
 				# THIS IS TO CATCH END CASES
 				if i <= _last.left()+3:
 					pass
 				# BACKWARDS
 				elif d < 0 and has_backward_motif(e1+p1+a1) and lf.fold(k)[1] / len(k) / gc < -0.1:
-					l = lf.fold(k)
-					l = l[1]/ len(k) / gc
-					#l = l[1]/ (len(k)-l[0].count('.')) / gc
-					h = hk.fold(K, model)[1] / len(K) / GC
-					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1),rarity(a1)/rarity(a0), l, h, has_backward_motif(e1+p1+a1)[0], self.v]
-					k =  self.seq( i+1+5   , i+45+5   , strand).upper().replace('T','U')
-					gc = self.gc_content(k)
-					l = lf.fold(k)[1]/ len(k) / gc
-					out.append(l)
+					m,v = has_backward_motif(e1+p1+a1)
+					l = lf.fold(k)[1]        / len(k) / self.gc_content(k)
+					h = hk.fold(K, model)[1] / len(K) / self.gc_content(K)
+					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, r0, r1,ratio, l, h, m,v, self.v]
+					out.append(model) ; out.append(param)
 					for n in nrange:
 						for j in jrange:
-							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
-							GC = self.gc_content(K)
-							h = hk.fold(K, model)[1] / len(K) / GC
+							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
+							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+							out.append(l)
 							out.append(h)
 					print("\t".join([ str(rround(item)) for item in out]))
 				# FORWARD
 				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
-					l = lf.fold(k)[1] / len(k) / gc
-					h = hk.fold(K, model)[1] / len(K) / GC
-					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h, has_forward_motif(e0+p0+a0)[0], self.v]
-					k =  self.seq( i+1+5   , i+45+5   , strand).upper().replace('T','U')
-					gc = self.gc_content(k)
-					l = lf.fold(k)
-					l = l[1]/ len(k) / gc
-					out.append(l)
+					m,v = has_forward_motif(e0+p0+a0)
+					l = lf.fold(k)[1]        / len(k) / self.gc_content(k)
+					h = hk.fold(K, model)[1] / len(K) / self.gc_content(K)
+					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, r0, r1, ratio, l, h, m,v, self.v]
+					out.append(model) ; out.append(param)
 					for n in nrange:
 						for j in jrange:
-							K =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
-							GC = self.gc_content(K)
-							h = hk.fold(K, model)[1] / len(K) / GC
+							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
+							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+							out.append(l)
 							out.append(h)
 					print("\t".join([ str(rround(item)) for item in out]))
 					#return
