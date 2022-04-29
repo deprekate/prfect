@@ -16,7 +16,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 def is_valid_file(x):
 	if not os.path.exists(x):
@@ -28,19 +28,20 @@ if __name__ == '__main__':
 	usage = '%s [-opt1, [-opt2, ...]] infile' % __file__
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
 	#parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-	parser.add_argument('clusters', type=is_valid_file, help='clusters file')
+	#parser.add_argument('clusters', type=is_valid_file, help='clusters file')
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-c', '--cluster', help='', type=int, default=0)
 	args = parser.parse_args()
 
 
+	'''
 	clusters = list()
 	with open(args.clusters) as fp:
 		for line in fp:
 			cols = line.rstrip().split()
 			cols = cols[1:]
 			clusters.append(cols)
-
+	'''
 
 	le = preprocessing.LabelEncoder()
 	oe = preprocessing.OrdinalEncoder()
@@ -87,25 +88,31 @@ if __name__ == '__main__':
 		plt.show()
 		exit()
 
-	cluster = clusters[args.cluster]
+	
+
+	#cluster = clusters[args.cluster-1]
+	column = 'mash_k16s400c90'
+	#cluster = df['CLUSTER'].unique()[args.cluster-1]
+	cluster = df[column].unique()[args.cluster-1]
 	colnames = df.columns
-	for model,param in [('CC','parameters_CC09.txt'), ('DP','parameters_DP09.txt')]: #'cluster in clusters:
+	#for model,param in [('CC','parameters_CC09.txt'), ('DP','parameters_DP09.txt')]: #'cluster in clusters:
+	for model,param in [('DP','parameters_DP09.txt')]: #'cluster in clusters:
+		X = df.loc[(df['MODEL']==model) & (df['PARAM']==param),:].join(oh)
+		Y = df.loc[(df['MODEL']==model) & (df['PARAM']==param),['TYPE']]
+		take.extend( [True] * len(oh.columns))
 		for l in range(26,286,2):
 			for h in range(27,286,2):
 				TN = FP = FN = TP = 0
 				take[l] = True
 				take[h] = True
-				#print(cluster)
+				#print(cluster, flush=True)
 				#cluster = ['AikoCarson','Amok']
 				#print(df.loc[:,take]) ; exit()
-				X = df.loc[:,take].join(oh)
-				X_train = X.loc[(~df['NAME'].isin(cluster)) & (df['MODEL']==model) & (df['PARAM']==param),:]
-				X_test  = X.loc[( df['NAME'].isin(cluster)) & (df['MODEL']==model) & (df['PARAM']==param),:]
+				X_train = X.loc[df[column] != cluster, take]
+				X_test  = X.loc[df[column] == cluster, take]
 				#print(X_train)  ; exit()
-				Y = df.loc[:,['TYPE']]
-				#Y = df.loc[:,['TYPE']]
-				Y_train = Y.loc[(~df['NAME'].isin(cluster)) & (df['MODEL']==model) & (df['PARAM']==param),:]
-				Y_test  = Y.loc[( df['NAME'].isin(cluster)) & (df['MODEL']==model) & (df['PARAM']==param),:]
+				Y_train = Y.loc[df[column] != cluster, :]
+				Y_test  = Y.loc[df[column] == cluster, :]
 		
 				if X_train.empty or X_test.empty:
 					continue
@@ -124,7 +131,9 @@ if __name__ == '__main__':
 				precis = TP / (TP+FP) if (TP+FP) else 0
 				recall = TP / (TP+FN) if (TP+FN) else 0
 				f1 = (2 * precis * recall) / (precis+recall) if (precis+recall) else 0
-				print("cluster_"+str(args.cluster), model, param, colnames[l], colnames[h], TN, FP, FN, TP, precis, recall, f1)
+				print(cluster, model, param, colnames[l], colnames[h], TN, FP, FN, TP, precis, recall, f1, sep='\t', flush=True)
+				take[l] = False
+				take[h] = False
 	
 
 
