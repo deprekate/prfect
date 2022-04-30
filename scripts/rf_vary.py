@@ -76,6 +76,7 @@ if __name__ == '__main__':
 
 	#print(df.loc[:,take]) ; exit()
 
+	print(df.loc[(df.CLUSTER=='ClusterA') & (df.TYPE==1) ,:]) ; exit()
 
 	#cluster = clusters[args.cluster-1]
 	column = 'mash_k16s400c90'

@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
 	#df = df[df.MOTIF != "is_twoonethree"]
 
-	#print(df.loc[df.NAME=='Abigail',["NAME",'I','TYPE','BEST']]) ; exit()
+	print(df.loc[(df.CLUSTER=='ClusterA') & (df.TYPE==1) ,:]) ; exit()
 
 	# label encoder is prob not the best to use
 	#df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
