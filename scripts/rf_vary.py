@@ -76,19 +76,6 @@ if __name__ == '__main__':
 
 	#print(df.loc[:,take]) ; exit()
 
-	# INBAG FOREST
-	if False:
-		take = [True] * len(df.columns)
-		take[22] = False
-		X_train = df.loc[:,take]
-		Y_train = df.loc[:,'TYPE']
-		clf = RandomForestClassifier(max_depth=100, random_state=0)
-		clf.fit(X_train, Y_train)
-		plt.barh(X_train.columns, clf.feature_importances_)
-		plt.show()
-		exit()
-
-	
 
 	#cluster = clusters[args.cluster-1]
 	column = 'mash_k16s400c90'
@@ -120,9 +107,7 @@ if __name__ == '__main__':
 				clf.fit(X_train, Y_train.values.ravel())
 				preds = clf.predict(X_test)
 				#print(cluster)
-				'''
-				print(confusion_matrix(Y_test, preds, labels=[0,1]))
-				'''
+				#print(confusion_matrix(Y_test, preds, labels=[0,1]))
 				tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()
 				TN += tn ; FP += fp ; FN += fn ; TP += tp
 				#print(colored(tn, 'green'),colored(fp, 'red'),colored(fn, 'red'),colored(tp, 'green') )
