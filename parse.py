@@ -33,7 +33,7 @@ if True:
 					motif.has_slip(_last,_curr)
 					_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				#continue
+				continue
 				if _last and _last.strand==feature.strand:
 					motif.v = False
 					motif.has_slip(_last,feature)
