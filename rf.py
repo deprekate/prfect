@@ -51,27 +51,29 @@ if __name__ == '__main__':
 	#print(df.loc[df.TYPE==1,'NAME'].nunique()) ; exit()
 
 
+	df = df[df.MOTIF != "is_twoonethree"]
+	df = df[df.MOTIF != "is_three"]
+	df = df.drop( df[(df.MOTIF == "is_hexa") & (df.DIRECTION == 1)].index )
+
+	df['BEST'] = 0
+	df.loc[df.loc[df.TYPE==1].groupby('NAME')['PROB'].idxmin(),'BEST'] = 1
+
 	#idx = df.loc[df.TYPE==1,:].groupby(['NAME','MODEL','PARAM']).PROB.idxmin()
 	#df['TYPE'] = 0 ; df.loc[idx,['TYPE']] = 1
 	#print(df.loc[df.TYPE==1,:]) ; exit()
 
+	df = df[df.DIRECTION == -1]
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby('NAME')['TYPE'].any().to_frame('HAS')
 	df = df.merge(has, left_on='NAME', right_index=True)
 	df = df.loc[df.HAS,:]
 
-	df = df[df.MOTIF != "is_twoonethree"]
-	df = df[df.MOTIF != "is_three"]
-	df = df.drop( df[(df.MOTIF == "is_hexa") & (df.DIRECTION == 1)].index )
+	take = ['N','RBS1','RBS2', 'LF_85_24', 'HK_35_6']
 
-	df = df[df.DIRECTION == 1]
+	#print(df.loc[(df.CLUSTER=='ClusterBB') ,take]) ; exit()
 
-	#print(df.loc[(df.CLUSTER=='ClusterA') & (df.TYPE==1) ,:]) ; exit()
-
-	take = ['N','RBS1','RBS2', 'a0', 'RATIO', 'LF_30_24', 'HK_30_24']
-
-	#print(df.loc[:,take]) ; exit()
+	#print(df.loc[:,take+['TYPE','BEST']]) ; exit()
 
 	# label encoder is prob not the best to use
 	#df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
@@ -101,8 +103,10 @@ if __name__ == '__main__':
 			Y_train = Y.loc[df[column] != cluster, :]
 			Y_test  = Y.loc[df[column] == cluster, :]
 			#print(X_train) ; exit()	
-			tem = X_test.join(df[['NAME','TYPE','LASTLEFT','LASTRIGHT']]) #.groupby(['TYPE'])['NAME'].unique()[1].size
-	
+			#tem = X_test.join(df[['NAME','TYPE','LASTLEFT','LASTRIGHT']]) #.groupby(['TYPE'])['NAME'].unique()[1].size
+
+			tot = X_test.join(df[['NAME','TYPE']]).groupby(['TYPE'])['NAME'].unique()[1].size
+			
 			if X_test.empty:
 				continue
 			clf = RandomForestClassifier(bootstrap=False)
@@ -132,7 +136,7 @@ if __name__ == '__main__':
 			'''
 			tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()
 			TN += tn ; FP += fp ; FN += fn ; TP += tp
-			print(cluster, colored(tn, 'green'),colored(fp, 'red'),colored(fn, 'red'),colored(tp, 'green') , sep='\t', flush=True)
+			print(cluster, colored(tn, 'green'),colored(fp, 'red'),colored(fn, 'red'),colored(tp, 'green') , tot, sep='\t', flush=True)
 			#print(cluster, model, param, TN, FP, FN, TP, precis, recall, f1, sep='\t', flush=True)
 
 	print(colored(TN, 'green'),colored(FP, 'red'),colored(FN, 'red'),colored(TP, 'green') )
