@@ -12,11 +12,22 @@ import argparse
 from argparse import RawTextHelpFormatter
 from termcolor import colored
 
+import numpy as np
 import pandas as pd
+from sklearn.ensemble import HistGradientBoostingClassifier, GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 from matplotlib import pyplot as plt
+
+param_dist = {
+    "max_depth": [10, None],
+    "max_features": 10,
+    "min_samples_split": 10,
+    "bootstrap": [True, False],
+    "criterion": ["gini", "entropy"],
+}
+
 
 def is_valid_file(x):
 	if not os.path.exists(x):
@@ -52,71 +63,74 @@ if __name__ == '__main__':
 
 
 	df = df[df.MOTIF != "is_twoonethree"]
-	df = df[df.MOTIF != "is_three"]
+	#df = df[df.MOTIF != "is_three"]
 	df = df.drop( df[(df.MOTIF == "is_hexa") & (df.DIRECTION == 1)].index )
 
-	df['BEST'] = 0
-	df.loc[df.loc[df.TYPE==1].groupby('NAME')['PROB'].idxmin(),'BEST'] = 1
 
-	#idx = df.loc[df.TYPE==1,:].groupby(['NAME','MODEL','PARAM']).PROB.idxmin()
-	#df['TYPE'] = 0 ; df.loc[idx,['TYPE']] = 1
+	idx = df.loc[df.TYPE==1,:].groupby(['NAME','MODEL','PARAM']).PROB.idxmin()
+	df['TYPE'] = 0 ; df.loc[idx,['TYPE']] = 1
 	#print(df.loc[df.TYPE==1,:]) ; exit()
 
-	df = df[df.DIRECTION == -1]
+	#df = df[df.DIRECTION == 1]
+
+	#df['DIRECTION'] = df['DIRECTION']+1
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby('NAME')['TYPE'].any().to_frame('HAS')
 	df = df.merge(has, left_on='NAME', right_index=True)
 	df = df.loc[df.HAS,:]
 
-	take = ['N','RBS1','RBS2', 'LF_85_24', 'HK_35_6']
+	#df['LF_RATIO'] = df['L_LF_50_0'] / df['LF_50_0']
+	take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'MOTIF', 'PROB', 'L_LF_35_3', 'LF_35_3','L_LF_50_3', 'LF_50_3','L_HK_85_3','HK_85_3']
 
-	#print(df.loc[(df.CLUSTER=='ClusterBB') ,take]) ; exit()
+	#df = df.replace([np.inf, -np.inf], 0) 
+
+	#df.loc[df.A == df.P, ['RATIO'] ] = df.loc[df.A == df.P, ['RATIO'] ] * 2
+	#df.loc[df.A == df.E, ['RATIO'] ] = df.loc[df.A == df.E, ['RATIO'] ] * 2
+	#print(df.loc[(df.NAME=='Bromden') & (df.TYPE==1) ,take]) ; exit()
 
 	#print(df.loc[:,take+['TYPE','BEST']]) ; exit()
+	df['TYPE'] = df['TYPE'] * df['DIRECTION']
 
 	# label encoder is prob not the best to use
-	#df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
-	oh = pd.get_dummies(df[ ['MOTIF'] ])
+	df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
+	#oh = pd.get_dummies(df[ ['MOTIF'] ])
 	
 	#take = [False] * len(df.columns)
 	#for i in [1,10,11,12,16,17,18,19,20]:
 	#for i in [1,10,11,12,18,86,247]: #,87,167,186]:
 	#for i in [1,10,11,12,18,86, 249]: #,260]: #,87,167,186]:
 	#	take[i] = True
-
 	#print(df.loc[:,take]) ; exit()
 
-	model,param = ('DP','parameters_DP09.txt')
-	X = df.loc[(df['MODEL']==model) & (df['PARAM']==param),take].join(oh)
+	model,param = ('CC','parameters_CC09.txt')
+	X = df.loc[(df['MODEL']==model) & (df['PARAM']==param),take] #.join(oh)
 	Y = df.loc[(df['MODEL']==model) & (df['PARAM']==param),['TYPE']]
 	#take.extend( [True] * len(oh.columns))
 	TN = FP = FN = TP = 0
 	#for column in ['CLUSTER','SUBCLUSTER','mash_k16s400c90','mash_k16s400c95', 'NAME']:
 	for column in ['CLUSTER']:
 		for cluster in df[column].unique():
-			#print(cluster)
-			#cluster = "ClusterL"
+			cluster = "ClusterF"
+			print(cluster)
 			#Y = df.loc[:,['BEST']]
 			X_train = X.loc[df[column] != cluster, :]
 			X_test  = X.loc[df[column] == cluster, :]
 			Y_train = Y.loc[df[column] != cluster, :]
 			Y_test  = Y.loc[df[column] == cluster, :]
-			#print(X_train) ; exit()	
+			#print(X_train.join(Y_train)) ; exit()	
 			#tem = X_test.join(df[['NAME','TYPE','LASTLEFT','LASTRIGHT']]) #.groupby(['TYPE'])['NAME'].unique()[1].size
 
-			tot = X_test.join(df[['NAME','TYPE']]).groupby(['TYPE'])['NAME'].unique()[1].size
+			tot = 0 #X_test.join(df[['NAME','TYPE']]).groupby(['TYPE'])['NAME'].unique()[1].size
 			
 			if X_test.empty:
 				continue
-			clf = RandomForestClassifier(bootstrap=False)
-			clf.fit(X_train, Y_train.values.ravel())
+			#clf = RandomForestClassifier(n_estimators=100)
+			#clf.fit(X_train, Y_train.values.ravel())
+			clf = HistGradientBoostingClassifier(categorical_features=[6], l2_regularization=1).fit(X_train, Y_train.values.ravel() )
+			#clf = GradientBoostingClassifier().fit(X_train, Y_train.values.ravel() )
 			preds = clf.predict(X_test)
-			#print(cluster)
-			#print(confusion_matrix(Y_test, preds, labels=[0,1]))
-			#tem = X_test.join(Y_test).join(df['NAME'])
-			#tem['PRED'] = preds
-			#print(tem.loc[(tem['TYPE']==1) & (tem['DIRECTION']==1),]   ) ; exit()
+			print(confusion_matrix(Y_test, preds, labels=[-1,0,1]))
 			'''
 			tp = tem.loc[(tem.TYPE==1) & (tem.PRED==1),:].shape[0]
 			tn = tem.loc[(tem.TYPE==0) & (tem.PRED==0),:].shape[0]
@@ -138,6 +152,7 @@ if __name__ == '__main__':
 			TN += tn ; FP += fp ; FN += fn ; TP += tp
 			print(cluster, colored(tn, 'green'),colored(fp, 'red'),colored(fn, 'red'),colored(tp, 'green') , tot, sep='\t', flush=True)
 			#print(cluster, model, param, TN, FP, FN, TP, precis, recall, f1, sep='\t', flush=True)
+			#exit()
 
 	print(colored(TN, 'green'),colored(FP, 'red'),colored(FN, 'red'),colored(TP, 'green') )
 	precis = TP / (TP+FP) if (TP+FP) else 0
