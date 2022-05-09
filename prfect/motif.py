@@ -8,8 +8,8 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
-model = "CC"
-param = "parameters_CC09.txt"
+model = "DP"
+param = "parameters_DP09.txt"
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 
@@ -203,7 +203,7 @@ class Motif(Locus):
 					out.append(model) ; out.append(param)
 					for n in nrange:
 						for j in jrange:
-							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
 							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
 							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 							out.append(l)
@@ -218,7 +218,7 @@ class Motif(Locus):
 					out.append(model) ; out.append(param)
 					for n in nrange:
 						for j in jrange:
-							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
 							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
 							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 							out.append(l)

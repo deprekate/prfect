@@ -76,15 +76,15 @@ if __name__ == '__main__':
 
 	#print(df.loc[:,take]) ; exit()
 
-	print(df.loc[(df.CLUSTER=='ClusterA') & (df.TYPE==1) ,:]) ; exit()
+	#print(df.loc[(df.CLUSTER=='ClusterA') & (df.TYPE==1) ,:]) ; exit()
 
 	#cluster = clusters[args.cluster-1]
-	column = 'mash_k16s400c90'
+	column = 'SUBCLUSTER'
 	#cluster = df['CLUSTER'].unique()[args.cluster-1]
 	cluster = df[column].unique()[args.cluster-1]
 	colnames = df.columns
-	#for model,param in [('CC','parameters_CC09.txt'), ('DP','parameters_DP09.txt')]: #'cluster in clusters:
-	for model,param in [('DP','parameters_DP09.txt')]: #'cluster in clusters:
+	for model,param in [('CC','parameters_CC09.txt'), ('CC','parameters_DP09.txt')]: #'cluster in clusters:
+	#for model,param in [('DP','parameters_DP09.txt')]: #'cluster in clusters:
 		X = df.loc[(df['MODEL']==model) & (df['PARAM']==param),:].join(oh)
 		Y = df.loc[(df['MODEL']==model) & (df['PARAM']==param),['TYPE']]
 		take.extend( [True] * len(oh.columns))
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 				precis = TP / (TP+FP) if (TP+FP) else 0
 				recall = TP / (TP+FN) if (TP+FN) else 0
 				f1 = (2 * precis * recall) / (precis+recall) if (precis+recall) else 0
-				print(cluster, model, param, colnames[l], colnames[h], TN, FP, FN, TP, precis, recall, f1, sep='\t', flush=True)
+				print(column+"_"+cluster, model, param, colnames[l], colnames[h], TN, FP, FN, TP, precis, recall, f1, sep='\t', flush=True)
 				take[l] = False
 				take[h] = False
 	
