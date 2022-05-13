@@ -219,6 +219,10 @@ class Motif(Locus):
 					for n in nrange:
 						for j in jrange:
 							s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
+							print(s)
+							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							print(s)
+							exit()
 							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
 							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 							out.append(l)
