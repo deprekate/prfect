@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
 	df = pd.read_csv(args.infile, sep='\t')
 	df = df.drop(columns=['BLANK'])
-	model,param = ('DP','parameters_DP09')
+	model,param = ('CC','parameters_CC09')
 	df = df.loc[(df['MODEL']==model) & (df['PARAM']==param), : ]
 	# this removes duplicate positive TYPEs that are more than 10 bases away from annotated shift
 	df.loc[abs(df.I - df.CURRLEFT) > 10 ,'TYPE'] = 0
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
 
 	#df['LF_RATIO'] = df['L_LF_50_0'] / df['LF_50_0']
-	take = ['N','RBS1','RBS2', 'a0', 'a1', 'MOTIF', 'PROB', 'LF_55_3_LEFT', 'LF_55_0_RIGHT', 'HK_30_3_LEFT','HK_30_0_RIGHT', 'LF_30_15_LEFT','LF_30_12_RIGHT']
+	take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
 
 	#take = take + list(df.columns[24:-6])
 	#df = df.replace([np.inf, -np.inf], 0) 
@@ -88,15 +88,18 @@ if __name__ == '__main__':
 
 	#print(df.loc[:,take+['TYPE']]) ; exit()
 
-	#df['TYPE'] = df['TYPE'] * df['DIRECTION']
-	# label encoder is prob not the best to use
+	df['TYPE'] = df['TYPE'] * df['DIRECTION']
+
+	# have to use label encoder for HistBoost factors
 	df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
 
 	#df = df.loc[df.DIRECTION==1,:]
 	# this is to drop genomes that do not have a chaperone annotated
 	#has = df.groupby(['NAME','DIRECTION'])['TYPE'].any().to_frame('HAS')
-	has = df.groupby(['NAME','DIRECTION'])['TYPE'].any().unstack(fill_value=False).reset_index()
-	df = df.merge(has) #, left_on='NAME', right_index=True)
+	#has = df.groupby(['NAME','DIRECTION'])['TYPE'].any().unstack(fill_value=False).reset_index()
+	#df = df.merge(has)
+	has = df.groupby(['NAME'])['TYPE'].any().to_frame('HAS')
+	df = df.merge(has, left_on='NAME', right_index=True)
 	df = df.loc[df.HAS,:]
 
 
@@ -123,11 +126,20 @@ if __name__ == '__main__':
 			#clf = RandomForestClassifier(n_estimators=100)
 			#clf.fit(X_train, Y_train.values.ravel())
 			clf = HistGradientBoostingClassifier(categorical_features=X_train.columns=='MOTIF', l2_regularization=0, max_iter=100).fit(X_train, Y_train.values.ravel() )
-			#clf = GradientBoostingClassifier().fit(X_train, Y_train.values.ravel() )
 			preds = clf.predict(X_test)
 			
-			tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()
-			print(column, cluster, tn,fp,fn,tp, sep='\t', flush=True)
+			#tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()
+			#print(confusion_matrix(Y_test, preds, labels=[-1,0,1]))
+			tem = X_test.join(df[['TYPE']])
+			tem['PRED'] = preds
+			#print(tem.loc[(tem.TYPE==0) & (tem.PRED!=0),])
+			tp1 = tem.loc[(tem.TYPE==tem.PRED) & (tem.TYPE== 1),:].shape[0]
+			tp2 = tem.loc[(tem.TYPE==tem.PRED) & (tem.TYPE==-1),:].shape[0]
+			fp = tem.loc[(tem.TYPE==0) & (tem.PRED!=0) & (tem.DIRECTION==tem.PRED),:].shape[0]
+			fn = tem.loc[(tem.TYPE!=0) & (tem.TYPE!=tem.PRED),:].shape[0]
+			tn = tem.loc[(tem.TYPE==tem.PRED) & (tem.TYPE==0),:].shape[0]
+			print(column, cluster, tn,fp,fn,(tp1,tp2), sep='\t', flush=True)
+			#print(column, cluster, tn,fp,fn,tp, sep='\t', flush=True)
 			'''
 			for name in tem['NAME'].unique():
 				tp = tem.loc[(tem.NAME==name) & (tem.TYPE==1) & (tem.PRED==1),:].shape[0]
@@ -141,7 +153,7 @@ if __name__ == '__main__':
 			#tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()
 			#print(cluster, colored(tn, 'green'),colored(fp, 'red'),colored(fn, 'red'),colored(tp, 'green') , tot, sep='\t', flush=True)
 			#print(column,cluster, model, param, TN, FP, FN, TP, precis, recall, f1, sep='\t', flush=True)
-			TN += tn ; FP += fp ; FN += fn ; TP += tp
+			TN += tn ; FP += fp ; FN += fn ; TP += tp1+tp2
 			#exit()
 
 		#print(colored(TN, 'green'),colored(FP, 'red'),colored(FN, 'red'),colored(TP, 'green') )
