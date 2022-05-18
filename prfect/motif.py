@@ -1,5 +1,9 @@
 import os
 from math import exp
+import pickle
+
+import pandas as pd
+import numpy as np
 
 from genbank.locus import Locus
 from prfect.prodigal import prodigal_score_rbs
@@ -8,8 +12,8 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
-model = "DP"
-param = "parameters_DP09.txt"
+model = "CC"
+param = "parameters_CC09.txt"
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 
@@ -105,19 +109,19 @@ def is_twoonefour(seq):
 
 def has_backward_motif(seq):
 	# these are the motifs to look for
-	for motif in [is_six, is_hexa, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour, is_twoonethree]:
+	for motif in [is_six, is_hexa, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]:
 		if motif(seq):
-			return (motif.__name__.ljust(15), motif(seq))
+			return (motif.__name__, motif(seq))
 	return None
 
 def has_forward_motif(seq):
 	# these are the motifs to look for
-	for motif in [is_hexa]: #, is_threetwo]:
-		if motif(seq):
-			return (motif.__name__.ljust(15), motif(seq))
+	#for motif in [is_hexa]: #, is_threetwo]:
+	#	if motif(seq):
+	#		return (motif.__name__, motif(seq))
 	for motif in [is_four, is_three]:
 		if motif(seq[3:7]):
-			return (motif.__name__.ljust(15), motif(seq[3:7]))
+			return (motif.__name__, motif(seq[3:7]))
 	return None
 
 def has(motif, seq):
@@ -138,6 +142,8 @@ class Motif(Locus):
 		#for key,value in parent.items():
 		#	self[key] = value
 		self._rbs = score_rbs.ScoreXlationInit()
+
+		self.clf = pickle.load(open('all.pkl', 'rb'))
 		
 
 	def score_rbs(self, rbs):
@@ -149,25 +155,14 @@ class Motif(Locus):
 		assert _last.strand==_curr.strand
 		rarity = self.codon_rarity
 		d = (1+_curr.left()-_last.left())%3-1
-		#m1 = self.seq(_curr.left()-5  , _last.right()+5  , +1)
-		#m0 = self.seq(_curr.left()-5+d, _last.right()+5+d, +1)
 		left = self.last(_curr.left()-1, _last.strand, self.stops)
 		left = left + 3 if left else _curr.frame('left') - 1
 		right = self.next(_last.right()-3, _last.strand, self.stops)
 		right = right if right else self.length()
 		strand = _curr.strand
-		'''
-		m = m0 #if d > 0 else m1
-		print(name, d, sep='\t', end='\t')
-		for mot in [is_hexa, is_fivetwo, is_twofour, is_five, is_four, is_threetwotwo, is_twoonethree]:
-			print(has(mot, m), end='\t')
-		print(m, end='\t')
-		s = self.seq(left-1+d,right+3+d)
-		for mot in [is_hexa, is_fivetwo, is_twofour, is_five, is_four, is_threetwotwo, is_twoonethree]:
-			print(has(mot, s), end='\t')
-		print(s)
-		return
-		'''
+		
+		take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+		le = {'is_five': 0, 'is_fivetwo': 1, 'is_four': 2, 'is_hexa': 3, 'is_six': 4, 'is_three': 5, 'is_threetwotwo': 6, 'is_twofive': 7, 'is_twofour': 8, 'is_twoonefour': 9}
 		if strand > 0:
 			for n, i in enumerate(range(right,left,-3)):
 				r =  self.seq( i-19  , i      , strand)
@@ -180,60 +175,46 @@ class Motif(Locus):
 				# ratio
 				r0 = rarity(a0) ; r1 = rarity(a1)
 				ratio = r1/r0 if r0 else r1 * 100
-				#m0 = self.seq( i-2   , i+4    , strand)
-				#m1 = self.seq( i-2+d , i+4+d  , strand)
-				k =  self.seq( i+7   , i+52   , strand).upper().replace('T','U')
-				K =  self.seq( i+7   , i+77   , strand).upper().replace('T','U')
-				#scoring
-				dist = 0 #sqrt(3*n) #10+log10(1+(right-i)/3)
-				gc = self.gc_content()
-				#GC = self.gc_content(K)
-				s = str([prodigal_score_rbs(r), self.score_rbs(r)]).ljust(8)
-				nrange = range(30,95,5)
-				jrange = range(0,30,3)
+				# rbs
+				rbs1 = prodigal_score_rbs(r)
+				rbs2 = self.score_rbs(r)
+				# ranges
+				nrange = [35,40]
+				jrange = [6]
 				# THIS IS TO CATCH END CASES
 				if i <= _last.left()+3:
 					pass
 				# BACKWARDS
-				elif d < 0 and has_backward_motif(e1+p1+a1) and lf.fold(k)[1] / len(k) / gc < -0.1:
+				elif d < 0 and has_backward_motif(e1+p1+a1): # and lf.fold(k)[1] / len(k) / gc < -0.1:
 					m,v = has_backward_motif(e1+p1+a1)
-					l = lf.fold(k)[1]        / len(k) / self.gc_content(k)
-					h = hk.fold(K, model)[1] / len(K) / self.gc_content(K)
-					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, r0, r1,ratio, l, h, m,v, self.v]
-					out.append(model) ; out.append(param)
+					out = [d, n, rbs1,rbs2, r0, r1, ratio, m,v]
 					for n in nrange:
 						for j in jrange:
-							s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
+							#s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
+							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
 							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
 							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 							out.append(l)
 							out.append(h)
-					print("\t".join([ str(rround(item)) for item in out]))
+
+					out[7] = le[out[7]]
+					sample = pd.DataFrame([out], columns=take)
+					print(i, self.clf.predict(sample))
 				# FORWARD
 				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
 					m,v = has_forward_motif(e0+p0+a0)
-					l = lf.fold(k)[1]        / len(k) / self.gc_content(k)
-					h = hk.fold(K, model)[1] / len(K) / self.gc_content(K)
-					out = [name, d, gc, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, r0, r1, ratio, l, h, m,v, self.v]
-					out.append(model) ; out.append(param)
+					out = [d, n, rbs1, rbs2, r0, r1, ratio, m,v]
 					for n in nrange:
 						for j in jrange:
-							s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
-							print(s)
+							#s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
 							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
-							print(s)
-							exit()
 							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
 							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 							out.append(l)
 							out.append(h)
-					print("\t".join([ str(rround(item)) for item in out]))
-					#return
-		#m = self.seq(_last.right() - 10, _last.right()+10, strand)
-		#out = [d, self.gc_content(), left, right, m]
-		#print("\t".join([ str(rround(item)) for item in out]))
-		return False
-				#	print(colored(mfe0[1], 'red'), end='\t')
+					out[7] = le[out[7]]
+					sample = pd.DataFrame([out], columns=take)
+					print(self.clf.predict(sample))
 
 		
 

@@ -12,6 +12,7 @@ from termcolor import colored
 sys.path.pop(0)
 #import prfect
 from prfect.file import File
+from prfect.motif import Motif
 
 #def extra(self, value=None):
 #	return 'extra'
@@ -30,22 +31,29 @@ if __name__ == '__main__':
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	args = parser.parse_args()
 
-	fp = File(args.infile)
-	for name,locus in fp.items():
-		#for feature in locus:
-		#	print(feature, feature.more())
-		'''
-		locus.codon_rarity('ccc')
-		for k, v in sorted(locus.rarity.items(), key=lambda item: item[1]):
-			args.outfile.write(k)
-			args.outfile.write("\t")
-			args.outfile.write(str(round(v,5)))
-			args.outfile.write("\n")
-		exit()
-		'''
-		locus.check_genes()
-		#locus.find_rbs()
-		#locus.write(args.outfile)
-		#locus.find_slips()
+	genbank = File(args.infile)
+	for name,locus in genbank.items():
+		motif = Motif(locus)
+		_last = _curr = None
+		for feature in locus:
+			if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
+				'''
+				a,b,c,d = map(int, sum(feature.pairs, () ))
+				if abs(c-b) < 5:
+					b = b - (b-a-2)%3
+					c = c + (d-c-2)%3
+					a,b,c,d = map(str, [a,b,c,d])
+					_last = Feature(feature.type, feature.strand, [[a,b]], locus)
+					_curr = Feature(feature.type, feature.strand, [[c,d]], locus)
+					motif.v = True
+					motif.has_slip(_last,_curr)
+					_last = None
+				'''
+				pass
+			elif feature.is_type('CDS') and len(feature.pairs)==1:
+				if _last and _last.strand==feature.strand:
+					motif.v = False
+					motif.has_slip(_last,feature)
+				_last = feature
 	
 

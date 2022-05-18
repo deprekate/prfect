@@ -11,9 +11,11 @@ import fileinput
 import argparse
 from argparse import RawTextHelpFormatter
 from termcolor import colored
+import pickle
 
 import numpy as np
 import pandas as pd
+from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.ensemble import HistGradientBoostingClassifier, GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
@@ -77,7 +79,10 @@ if __name__ == '__main__':
 
 
 	#df['LF_RATIO'] = df['L_LF_50_0'] / df['LF_50_0']
-	take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
+	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
+	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_6_LEFT', 'LF_55_6_RIGHT', 'HK_30_6_LEFT','HK_30_6_RIGHT', 'LF_30_6_LEFT','LF_30_6_RIGHT', 'LF_85_6_LEFT','LF_85_6_RIGHT']
+	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_RIGHT','LF_40_6_RIGHT','LF_90_24_RIGHT','HK_35_6_RIGHT', 'HK_30_24_RIGHT','LF_30_24_RIGHT','LF_35_21_LEFT','HK_50_3_RIGHT']
+	take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
 
 	#take = take + list(df.columns[24:-6])
 	#df = df.replace([np.inf, -np.inf], 0) 
@@ -102,18 +107,22 @@ if __name__ == '__main__':
 	df = df.merge(has, left_on='NAME', right_index=True)
 	df = df.loc[df.HAS,:]
 
+	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.TYPE)
+
 
 	TN = FP = FN = TP = 0
 	#for column in ['CLUSTER','SUBCLUSTER','mash_k16s400c90','mash_k16s400c95', 'NAME']:
 	for column in ['CLUSTER']:
 		for cluster in df[column].unique():
 			#cluster = "ClusterF"
+			cluster = None
 			#print(cluster)
 
 			#X_train = df.loc[(df[column] != cluster) & (df.DIRECTION==direction) & (df[direction]),     take     ]
 			X_train = df.loc[(df[column] != cluster), take     ]
 			X_test  = df.loc[(df[column] == cluster), take     ]
 			Y_train = df.loc[(df[column] != cluster), ['TYPE'] ]
+			Y_weigh = df.loc[(df[column] != cluster), ['WEIGHT'] ]
 			Y_test  = df.loc[(df[column] == cluster), ['TYPE'] ]
 			#print(X_train.join(Y_train))  ; exit()	
 			#print(X_test.join(Y_test)) ; exit()	
@@ -121,11 +130,15 @@ if __name__ == '__main__':
 
 			tot = 0 #X_test.join(df[['NAME','TYPE']]).groupby(['TYPE'])['NAME'].unique()[1].size
 			
-			if X_test.empty:
+			if X_test.empty and cluster:
 				continue
 			#clf = RandomForestClassifier(n_estimators=100)
 			#clf.fit(X_train, Y_train.values.ravel())
-			clf = HistGradientBoostingClassifier(categorical_features=X_train.columns=='MOTIF', l2_regularization=0, max_iter=100).fit(X_train, Y_train.values.ravel() )
+			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
+			clf = HistGradientBoostingClassifier(categorical_features=X_train.columns=='MOTIF', l2_regularization=0, max_iter=500).fit(X_train, Y_train.values.ravel(), sample_weight=Y_weigh.values.ravel())
+			le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+			print(le_name_mapping)
+			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
 			#tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()

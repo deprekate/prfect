@@ -3,9 +3,11 @@ import sys
 from itertools import zip_longest, chain, tee, islice
 from termcolor import colored
 from math import log10, exp, sqrt
+import pickle
 
 from genbank.locus import Locus
 from prfect.feature import Feature
+from prfect.motifs import *
 import score_rbs
 
 import numpy as np
@@ -431,46 +433,59 @@ class Locus(Locus, feature=Feature):
 					print(">seq" + str(i))
 					print(self.seq(i+1, i+20, -1))
 
-	def look_for_slip(self, left, right, strand):
-		global rbs
+	def look_for_slip(self, _last, _curr):
+		name = self.name.ljust(10)
+		self.stops = ['taa','tga','tag']
+		assert _last.strand==_curr.strand
 		rarity = self.codon_rarity
-		d = (1+left-right)%3-1
+		d = (1+_curr.left()-_last.left())%3-1
+		left = self.last(_curr.left()-1, _last.strand, self.stops)
+		left = left + 3 if left else _curr.frame('left') - 1
+		right = self.next(_last.right()-3, _last.strand, self.stops)
+		right = right if right else self.length()
+		strand = _curr.strand
 
 		if strand > 0:
 			for n, i in enumerate(range(right,left,-3)):
-				r = self.seq( i-19,    i,  strand)
-				a0 = self.seq(    i+1,  i+3,  strand)
-				a1 = self.seq(    i+2,  i+4,  strand)
-				p = self.seq(  i-2,    i,  strand)
-				p1 = self.seq(  i-2+d,    i+d,  strand)
-				e = self.seq(  i-5,  i-3,  strand)
-				m = self.seq(i-2+d, i+4+d, strand)
-				k = self.seq(i+4,i+84, strand)
-				#print(left,right, r, e,p,a, m)
+				r =  self.seq( i-19  , i      , strand)
+				e0 = self.seq( i-5   , i-3    , strand)
+				p0 = self.seq( i-2   , i      , strand)
+				a0 = self.seq( i+1   , i+3    , strand)
+				e1 = self.seq( i-5+d , i-3+d  , strand)
+				p1 = self.seq( i-2+d , i+d    , strand)
+				a1 = self.seq( i+1+d , i+3+d  , strand)
 				#scoring
 				dist = 0 #sqrt(3*n) #10+log10(1+(right-i)/3)
 				s = str([prodigal_score_rbs(r), rbs.score_init_rbs(r, 20)[0]]).ljust(8)
-				gc = self.gc_content(k)
+				# THIS IS TO CATCH END CASES
+				if i <= _last.left()+3:
+					pass
 				# BACKWARDS
-				if d < 0 and has_motif(m):
-					l = lf.fold(k)[1] / gc + dist
-					h = hk.fold(k.upper(), 'CC')[1] / gc + dist
-					if (l+h)/2 < -45:
-						v = has_motif(m) * exp(h/80)
-						out = [d, gc, left, right, r, m, v, s, e_score(*e), p_score(p,p1), a0, rarity(a0), rarity(a1),'none', l, h]
-						print("\t".join([ str(rround(item)) for item in out]))
+				elif d < 0 and has_backward_motif(e1+p1+a1) and lf.fold(k)[1] / len(k) / gc < -0.1:
+					m,v = has_backward_motif(e1+p1+a1)
+					out = [name, d, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, r0, r1,ratio, l, h, m,v, self.v]
+					for n in [35,40]:
+						for j in [6]:
+							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
+							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+							out.append(l)
+							out.append(h)
+					print(out)
+
 				# FORWARD
-				elif d > 0:
-					if a0 in self.stops:
-						pass
-					elif rarity(a1)/rarity(a0) > 1 and (is_four(p+a0)): # or a0=='ccc'):
-						l = lf.fold(k)[1] / gc + dist
-						h = hk.fold(k.upper(), 'CC')[1] / gc + dist
-						if (l+h) / 2 < -45:
-							v = 0.0156 * exp(h/80) * rarity(a0) / rarity(a1)
-							out = [d, gc, left, right, r, m, v, s, e_score(*e), p_score(p,p1), a0, rarity(a0), rarity(a1), rarity(a1)/rarity(a0), l, h]
-							print("\t".join([ str(rround(item)) for item in out]))
-						#print(k)
+				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
+					m,v = has_forward_motif(e0+p0+a0)
+					out = [name, d, left, right, _last.left(), _last.right(), _curr.left(), _curr.right(), i, n, s, e0,p0,a0, r0, r1,ratio, l, h, m,v, self.v]
+					for n in [35,40]:
+						for j in [6]:
+							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
+							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
+							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+							out.append(l)
+							out.append(h)
+					print(out)
+
 		return False
 				#	print(colored(mfe0[1], 'red'), end='\t')
 
@@ -479,6 +494,7 @@ class Locus(Locus, feature=Feature):
 		#	print(r, self.rares[r])
 		#exit()
 		self.stops = ['taa','tga','tag']
+		self.clf = pickle.load(open('all.pkl', 'rb'))
 		_last = _curr = None
 		for _, _, _next in previous_and_next(sorted(self)):
 			#if _last is None or (_last.type != 'CDS') or (_curr.type != 'CDS'):
