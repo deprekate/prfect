@@ -52,7 +52,8 @@ def main():
 		],
 		python_requires='>3.5.2',
 		packages=find_packages(),
-		#install_requires=[''],
+		package_data = {'': ['*.pkl'],},
+		install_requires=['sklearn','numpy','pandas','genbank'],
 		#ext_modules = [module],
 	)
 

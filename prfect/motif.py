@@ -199,7 +199,8 @@ class Motif(Locus):
 
 					out[7] = le[out[7]]
 					sample = pd.DataFrame([out], columns=take)
-					print(i, self.clf.predict(sample))
+					if self.clf.predict(sample)[0] == d:
+						return True
 				# FORWARD
 				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
 					m,v = has_forward_motif(e0+p0+a0)
@@ -214,7 +215,8 @@ class Motif(Locus):
 							out.append(h)
 					out[7] = le[out[7]]
 					sample = pd.DataFrame([out], columns=take)
-					print(self.clf.predict(sample))
+					if self.clf.predict(sample)[0] == d:
+						return True
 
 		
 
