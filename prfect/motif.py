@@ -1,6 +1,8 @@
 import os
 from math import exp
 import pickle
+import pkgutil
+import pkg_resources
 
 import pandas as pd
 import numpy as np
@@ -143,7 +145,9 @@ class Motif(Locus):
 		#	self[key] = value
 		self._rbs = score_rbs.ScoreXlationInit()
 
-		self.clf = pickle.load(open('all.pkl', 'rb'))
+		path = pkg_resources.resource_filename('prfect', 'all.pkl')
+		#data = pkgutil.get_data(__name__, "all.pkl")
+		self.clf = pickle.load(open(path, 'rb'))
 		
 
 	def score_rbs(self, rbs):
