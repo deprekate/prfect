@@ -39,9 +39,9 @@ if __name__ == '__main__':
 		_last = _curr = None
 		for feature in locus:
 			if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
-				continue
-				sys.stderr.write(colored("Genome has a joined feature:\n", 'red') )
+				sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
 				feature.write(sys.stderr)
+				sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
 
 				a,b,c,d = map(int, sum(feature.pairs, () ))
 				if abs(c-b) < 5:

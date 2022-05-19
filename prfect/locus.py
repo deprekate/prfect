@@ -7,7 +7,6 @@ import pickle
 
 from genbank.locus import Locus
 from prfect.feature import Feature
-from prfect.motifs import *
 import score_rbs
 
 import numpy as np
