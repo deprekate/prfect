@@ -133,7 +133,7 @@ class Motif(Locus):
 			features = self.get_features(seq, d, i, j)
 			if features:
 				if self.args.dump:
-					self.args.outfile.write('\t'.join(map(str, features.values())))
+				elf.args.outfile.write('\t'.join(map(str, features.values())))
 					self.args.outfile.write('\n')
 				else:
 					pass
