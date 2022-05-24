@@ -28,20 +28,9 @@ def rround(item, n=4):
         except:
             return item
 
-def shine_dalgarno(seq):
-	motif = 'aggagg'
-	match = 0
-	for a,b in zip(seq,motif):
-		if a==b:
-			match += 1
-	if match >= 5:
-		return True
-	else:
-		return False
-
-def is_hexa(seq):
+def is_threethree(seq):
 	if (seq[0] == seq[1] == seq[2]) and (seq[3] == seq[4] == seq[5]):
-		return 0.001
+		return 0.004
 	return None
 
 def is_fivetwo(seq):
@@ -82,6 +71,11 @@ def is_five(seq):
 		return 0.004
 	return None
 
+def is_twoonefour(seq):
+	if (seq[0] == seq[1]) and (seq[3] == seq[4] == seq[5] == seq[6]):
+		return 0.004
+	return None
+
 def is_four(seq):
 	if is_same(seq[:4]):
 		return 0.0156
@@ -92,48 +86,6 @@ def is_three(seq):
 		return 0.0625
 	return None
 
-def is_twoonethree(seq):
-	# too common
-	if (seq[0] == seq[1]) and (seq[3] == seq[4] == seq[5]):
-		return 0.0156
-	return None
-
-def is_twoonetwo(seq):
-	# too common
-	if (seq[0] == seq[1]) and (seq[3] == seq[4]):
-		return 0.0625
-	return None
-
-def is_twoonefour(seq):
-	if (seq[0] == seq[1]) and (seq[3] == seq[4] == seq[5] == seq[6]):
-		return 0.004
-	return None
-
-def has_backward_motif(seq):
-	# these are the motifs to look for
-	for motif in [is_six, is_hexa, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]:
-		if motif(seq):
-			return (motif.__name__, motif(seq))
-	return None
-
-def has_forward_motif(seq):
-	# these are the motifs to look for
-	#for motif in [is_hexa]: #, is_threetwo]:
-	#	if motif(seq):
-	#		return (motif.__name__, motif(seq))
-	for motif in [is_four, is_three]:
-		if motif(seq[3:7]):
-			return (motif.__name__, motif(seq[3:7]))
-	return None
-
-def has(motif, seq):
-	for i in range(0,len(seq),3):
-		try:
-			if motif(seq[i:]):
-				return True
-		except:
-			pass
-	return False
 
 class Motif(Locus):
 	def __init__(self,parent, *args, **kwargs):
@@ -148,84 +100,108 @@ class Motif(Locus):
 		path = pkg_resources.resource_filename('prfect', 'all.pkl')
 		#data = pkgutil.get_data(__name__, "all.pkl")
 		self.clf = pickle.load(open(path, 'rb'))
-		
+
+		self.backward_motifs = [is_six, is_threethree, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]
+		self.forward_motifs  = [is_four, is_three]
+
+	def motif_number(self, motif):
+		# sklearn requires factors to be encoded into integers
+		return [motif.__name__ for motif in self.backward_motifs + self.forward_motifs].index(motif)
 
 	def score_rbs(self, rbs):
 		return self._rbs.score_init_rbs(rbs,20)[0]
 
 	def has_slip(self, _last, _curr):
-		name = self.name.ljust(10)
 		self.stops = ['taa','tga','tag']
 		assert _last.strand==_curr.strand
-		rarity = self.codon_rarity
 		d = (1+_curr.left()-_last.left())%3-1
 		left = self.last(_curr.left()-1, _last.strand, self.stops)
-		left = left + 3 if left else _curr.frame('left') - 1
+		left = left + 1 if left else _curr.frame('left') - 1
 		right = self.next(_last.right()-3, _last.strand, self.stops)
-		right = right if right else self.length()
-		strand = _curr.strand
-		
-		take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
-		le = {'is_five': 0, 'is_fivetwo': 1, 'is_four': 2, 'is_hexa': 3, 'is_six': 4, 'is_three': 5, 'is_threetwotwo': 6, 'is_twofive': 7, 'is_twofour': 8, 'is_twoonefour': 9}
-		if strand > 0:
-			for n, i in enumerate(range(right,left,-3)):
-				r =  self.seq( i-19  , i      , strand)
-				e0 = self.seq( i-5   , i-3    , strand)
-				p0 = self.seq( i-2   , i      , strand)
-				a0 = self.seq( i+1   , i+3    , strand)
-				e1 = self.seq( i-5+d , i-3+d  , strand)
-				p1 = self.seq( i-2+d , i+d    , strand)
-				a1 = self.seq( i+1+d , i+3+d  , strand)
-				# ratio
-				r0 = rarity(a0) ; r1 = rarity(a1)
-				ratio = r1/r0 if r0 else r1 * 100
-				# rbs
-				rbs1 = prodigal_score_rbs(r)
-				rbs2 = self.score_rbs(r)
-				# ranges
-				nrange = [35,40]
-				jrange = [6]
-				# THIS IS TO CATCH END CASES
-				if i <= _last.left()+3:
+		right = right+3 if right else self.length()
+
+		#print(left, right) ; return
+
+		overlap = self.seq(left, right, _curr.strand)
+		if not overlap: return
+		seq = self.seq(left-90, right+90, _curr.strand)
+		i = seq.find(overlap)
+		j = i + len(overlap) - 3
+
+		# check for slippery sequences
+		while j > i:
+			features = self.get_features(seq, d, i, j)
+			if features:
+				if self.args.dump:
+					self.args.outfile.write('\t'.join(map(str, features.values())))
+					self.args.outfile.write('\n')
+				else:
 					pass
-				# BACKWARDS
-				elif d < 0 and has_backward_motif(e1+p1+a1): # and lf.fold(k)[1] / len(k) / gc < -0.1:
-					m,v = has_backward_motif(e1+p1+a1)
-					out = [d, n, rbs1,rbs2, r0, r1, ratio, m,v]
-					for n in nrange:
-						for j in jrange:
-							#s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
-							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
-							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
-							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
-							out.append(l)
-							out.append(h)
+					#sample = pd.DataFrame([out], columns=take)
+					#if self.clf.predict(sample)[0] == d:
+					#	return True
+			j = j - 3
 
-					out[7] = le[out[7]]
-					sample = pd.DataFrame([out], columns=take)
-					if self.clf.predict(sample)[0] == d:
-						return True
-				# FORWARD
-				elif d > 0 and has_forward_motif(e0+p0+a0) and rarity(a1)/rarity(a0) > 1:
-					m,v = has_forward_motif(e0+p0+a0)
-					out = [d, n, rbs1, rbs2, r0, r1, ratio, m,v]
-					for n in nrange:
-						for j in jrange:
-							#s =  self.seq( i+1-j-n   , i-j   , strand).upper().replace('T','U')
-							s =  self.seq( i+1+j   , i+n+j   , strand).upper().replace('T','U')
-							l = lf.fold(s)[1]        / len(s) / self.gc_content(s)
-							h = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
-							out.append(l)
-							out.append(h)
-					out[7] = le[out[7]]
-					sample = pd.DataFrame([out], columns=take)
-					if self.clf.predict(sample)[0] == d:
-						return True
+	def get_features(self, seq, d, i, j):
+		features = dict()
+		r =  seq[ j-20  : j      ]
+		e0 = seq[ j-6   : j-3    ]
+		p0 = seq[ j-3   : j      ]
+		a0 = seq[ j     : j+3    ]
+		e1 = seq[ j-6+d : j-3+d  ]
+		p1 = seq[ j-3+d : j+d    ]
+		a1 = seq[ j+d   : j+3+d  ]
+		# rbs
+		features['LABEL'] = self.label
+		features['DIRECTION'] = d
+		features['I']         = len(seq) - j - i
+		features['E0'] = e0
+		features['P0'] = p0
+		features['A0'] = a0
+		features['R0']        = self.codon_rarity(a0)
+		features['R1']        = self.codon_rarity(a1)
+		features['RBS1']      = prodigal_score_rbs(r)
+		features['RBS2']      = self.score_rbs(r)
+		# THIS IS TO CATCH END CASES
+		#if i <= _last.left()+3:
+		#	return None
+		# BACKWARDS
+		if d < 0 and self.has_backward_motif(e1+p1+a1): # and lf.fold(k)[1] / len(k) / gc < -0.1:
+			mot,prob = self.has_backward_motif(e1+p1+a1)
+			features['MOTIF'] = self.motif_number(mot)
+			features['PROB'] = prob
+		# FORWARD
+		elif d > 0 and self.has_forward_motif(e0+p0+a0): #and rarity(a1)/rarity(a0) > 1:
+			mot,prob = self.has_forward_motif(e0+p0+a0)
+			features['MOTIF'] = self.motif_number(mot)
+			features['PROB'] = prob
+		else:
+			return None
+		# ranges
+		nrange = [30,35,40] #,45,50,55,60,65,70,75,80,85,90]
+		jrange = [0, 3, 6, 9, 12, 15]
+		for n in nrange:
+			for j in jrange:
+				s = seq[ i-j-n-3 : i-j-3   ].upper().replace('T','U')
+				features['LF_%s_%s_LEFT' % (n,j)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
+				features['HK_%s_%s_LEFT' % (n,j)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+				s = seq[ i+j   : i+n+j ].upper().replace('T','U')
+				features['LF_%s_%s_RIGHT' % (n,j)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
+				features['HK_%s_%s_RIGHT' % (n,j)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+		return features
 
-		
-
-
-
-
-
+	def has_backward_motif(self, seq):
+		for motif in self.backward_motifs:
+			if motif(seq):
+				return (motif.__name__, motif(seq))
+		return None
+	
+	def has_forward_motif(self, seq):
+		#for motif in [is_hexa]: #, is_threetwo]:
+		#	if motif(seq):
+		#		return (motif.__name__, motif(seq))
+		for motif in self.forward_motifs:
+			if motif(seq[3:7]):
+				return (motif.__name__, motif(seq[3:7]))
+		return None
 

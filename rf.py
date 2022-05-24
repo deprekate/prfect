@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
 	df = pd.read_csv(args.infile, sep='\t')
 	df = df.drop(columns=['BLANK'])
-	model,param = ('CC','parameters_CC09')
+	model,param = ('DP','parameters_DP09')
 	df = df.loc[(df['MODEL']==model) & (df['PARAM']==param), : ]
 	# this removes duplicate positive TYPEs that are more than 10 bases away from annotated shift
 	df.loc[abs(df.I - df.CURRLEFT) > 10 ,'TYPE'] = 0
@@ -82,7 +82,8 @@ if __name__ == '__main__':
 	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
 	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_6_LEFT', 'LF_55_6_RIGHT', 'HK_30_6_LEFT','HK_30_6_RIGHT', 'LF_30_6_LEFT','LF_30_6_RIGHT', 'LF_85_6_LEFT','LF_85_6_RIGHT']
 	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_RIGHT','LF_40_6_RIGHT','LF_90_24_RIGHT','HK_35_6_RIGHT', 'HK_30_24_RIGHT','LF_30_24_RIGHT','LF_35_21_LEFT','HK_50_3_RIGHT']
-	take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+	take = ['DIRECTION',  'RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_35_21_LEFT', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+
 
 	#take = take + list(df.columns[24:-6])
 	#df = df.replace([np.inf, -np.inf], 0) 
@@ -97,6 +98,7 @@ if __name__ == '__main__':
 
 	# have to use label encoder for HistBoost factors
 	df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
+	df.loc[:,'E'] = le.fit_transform(df['E'])
 
 	#df = df.loc[df.DIRECTION==1,:]
 	# this is to drop genomes that do not have a chaperone annotated
@@ -115,14 +117,14 @@ if __name__ == '__main__':
 	for column in ['CLUSTER']:
 		for cluster in df[column].unique():
 			#cluster = "ClusterF"
-			cluster = None
+			#cluster = None
 			#print(cluster)
 
 			#X_train = df.loc[(df[column] != cluster) & (df.DIRECTION==direction) & (df[direction]),     take     ]
 			X_train = df.loc[(df[column] != cluster), take     ]
 			X_test  = df.loc[(df[column] == cluster), take     ]
 			Y_train = df.loc[(df[column] != cluster), ['TYPE'] ]
-			Y_weigh = df.loc[(df[column] != cluster), ['WEIGHT'] ]
+			Z_train = df.loc[(df[column] != cluster), ['WEIGHT'] ]
 			Y_test  = df.loc[(df[column] == cluster), ['TYPE'] ]
 			#print(X_train.join(Y_train))  ; exit()	
 			#print(X_test.join(Y_test)) ; exit()	
@@ -135,16 +137,18 @@ if __name__ == '__main__':
 			#clf = RandomForestClassifier(n_estimators=100)
 			#clf.fit(X_train, Y_train.values.ravel())
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
-			clf = HistGradientBoostingClassifier(categorical_features=X_train.columns=='MOTIF', l2_regularization=0, max_iter=500).fit(X_train, Y_train.values.ravel(), sample_weight=Y_weigh.values.ravel())
-			le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
-			print(le_name_mapping)
-			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
+			clf = HistGradientBoostingClassifier(categorical_features=[item in ['E','MOTIF'] for item in X_train.columns], l2_regularization=0.0, max_iter=500).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
+			#le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+			#print(le_name_mapping)
+			#pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
 			#tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()
 			#print(confusion_matrix(Y_test, preds, labels=[-1,0,1]))
 			tem = X_test.join(df[['TYPE']])
 			tem['PRED'] = preds
+			#tem[['PRED1','PRED2','PRED3']] = preds
+			#print(tem.loc[tem.TYPE!=0,:]) ; exit()
 			#print(tem.loc[(tem.TYPE==0) & (tem.PRED!=0),])
 			tp1 = tem.loc[(tem.TYPE==tem.PRED) & (tem.TYPE== 1),:].shape[0]
 			tp2 = tem.loc[(tem.TYPE==tem.PRED) & (tem.TYPE==-1),:].shape[0]

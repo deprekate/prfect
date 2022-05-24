@@ -31,11 +31,13 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
+	parser.add_argument('-d', '--dump', action="store_true")
 	args = parser.parse_args()
 
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
 		motif = Motif(locus)
+		motif.args = args
 		_last = _curr = None
 		for feature in locus:
 			if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
@@ -50,8 +52,8 @@ if __name__ == '__main__':
 					a,b,c,d = map(str, [a,b,c,d])
 					_last = Feature(feature.type, feature.strand, [[a,b]], locus)
 					_curr = Feature(feature.type, feature.strand, [[c,d]], locus)
-					motif.v = True
-					if motif.has_slip(_last, _curr):
+					motif.label = True
+					for motif.has_slip(_last, _curr):
 						sys.stderr.write(colored("ribo frameshift detected!\n", 'red') )
 						print()
 						print("     CDS   join(%s..%s,%s..%s)" % (_last.left(),_last.right(),_curr.left(),_curr.right() ) )
@@ -59,7 +61,7 @@ if __name__ == '__main__':
 					_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
 				if _last and _last.strand==feature.strand:
-					motif.v = False
+					motif.label = False
 					if motif.has_slip(_last,feature):
 						sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 						print()
