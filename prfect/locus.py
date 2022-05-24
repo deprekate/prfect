@@ -34,6 +34,10 @@ def rround(item, n=4):
         except:
             return item
 
+def pos(n):
+	if n >= 0:
+		return n
+	return 0
 
 class Locus(Locus, feature=Feature):
 	#def __init__(self,parent, *args, **kwargs):
@@ -118,10 +122,11 @@ class Locus(Locus, feature=Feature):
 		features['MODEL'] = model
 		features['PARAM'] = param
 		nrange = [30,35,40,45,50,55,60,65,70,75,80,85,90]
+		nrange = [75,80,85,90]
 		jrange = [0, 3, 6, 9, 12, 15]
 		for n in nrange:
 			for j in jrange:
-				s = seq[ i-j-n-3 : i-j-3   ].upper().replace('T','U')
+				s = seq[ pos(i-j-n-3) : pos(i-j-3)   ].upper().replace('T','U')
 				features['LF_%s_%s_LEFT' % (n,j)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
 				features['HK_%s_%s_LEFT' % (n,j)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 				s = seq[ i+j   : i+n+j ].upper().replace('T','U')
