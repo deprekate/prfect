@@ -68,6 +68,8 @@ if __name__ == '__main__':
 					for slip in locus.get_slips(_last, _curr):
 						if args.dump:
 							args.outfile.write('1\t')
+							args.outfile.write('a')
+							args.outfile.write('\t')
 							args.outfile.write('\t'.join(map(str,slip.values())))
 							args.outfile.write('\n')
 						else:
