@@ -91,7 +91,7 @@ class Locus(Locus, feature=Feature):
 		a1 = seq[ j+d   : j+3+d  ]
 		# rbs
 		features['N']         = len(seq) - j - i
-		features['DIRECTION'] = d
+		features['DIR'] = d
 		features['E0'] = e0
 		features['P0'] = p0
 		features['A0'] = a0
@@ -115,7 +115,7 @@ class Locus(Locus, feature=Feature):
 		else:
 			return None
 		# ranges
-		nrange = [30,35,40,45,50,55,60,65,70,75,80,85,90]
+		nrange = [30] #,35,40,45,50,55,60,65,70,75,80,85,90]
 		jrange = [0, 3, 6, 9, 12, 15]
 		for n in nrange:
 			for j in jrange:

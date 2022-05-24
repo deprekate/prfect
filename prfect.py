@@ -39,10 +39,16 @@ def alert(args, label, last, curr):
 	args.outfile.print("           /product=%s" % curr.tags['product'] )
 	args.outfile.print("\n")
 
+flag = True
 def dump(args, label, gc, last, curr, features):
+	global flag
+	if flag:
+		args.outfile.print('LABEL\tGC\tLASTL\tLASTR\tCURRL\tCURRR\t')
+		args.outfile.print('\t'.join(map(str,features.keys())))
+		flag = False
 	args.outfile.print(label)
 	args.outfile.print('\t')
-	args.outfile.print(gc)
+	args.outfile.print(round(gc,3))
 	args.outfile.print('\t')
 	args.outfile.print(last.left())
 	args.outfile.print('\t')
@@ -52,7 +58,7 @@ def dump(args, label, gc, last, curr, features):
 	args.outfile.print('\t')
 	args.outfile.print(curr.right())
 	args.outfile.print('\t')
-	args.outfile.print('\t'.join(map(str,features)))
+	args.outfile.print('\t'.join(map(str,features.values())))
 	args.outfile.print('\n')
 
 def _print(self, item):
@@ -92,7 +98,7 @@ if __name__ == '__main__':
 					_curr = Feature(feature.type, feature.strand, [[c,d]], locus)
 					for slip in locus.get_slips(_last, _curr):
 						if args.dump:
-							dump(args, 1, locus.gc_content(), _last, _curr, slip.values())
+							dump(args, 1, locus.gc_content(), _last, _curr, slip)
 						else:
 							if False:
 								alert(args, 1, _last, _curr)
@@ -101,7 +107,7 @@ if __name__ == '__main__':
 				if _last and _last.strand==feature.strand:
 					for slip in locus.get_slips(_last, feature):
 						if args.dump:
-							dump(args, 0, locus.gc_content(), _last, feature, slip.values())
+							dump(args, 0, locus.gc_content(), _last, feature, slip)
 						else:
 							if False:
 								alert(args, _last, feature)
