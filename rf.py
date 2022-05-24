@@ -82,7 +82,7 @@ if __name__ == '__main__':
 	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
 	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_6_LEFT', 'LF_55_6_RIGHT', 'HK_30_6_LEFT','HK_30_6_RIGHT', 'LF_30_6_LEFT','LF_30_6_RIGHT', 'LF_85_6_LEFT','LF_85_6_RIGHT']
 	#take = ['DIRECTION', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_RIGHT','LF_40_6_RIGHT','LF_90_24_RIGHT','HK_35_6_RIGHT', 'HK_30_24_RIGHT','LF_30_24_RIGHT','LF_35_21_LEFT','HK_50_3_RIGHT']
-	take = ['DIRECTION',  'RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'LF_35_21_LEFT', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+	take = ['DIRECTION', 'GC', 'RBS1','RBS2', 'A0R', 'A1R', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
 
 
 	#take = take + list(df.columns[24:-6])
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
 	# have to use label encoder for HistBoost factors
 	df.loc[:,'MOTIF'] = le.fit_transform(df['MOTIF'])
-	df.loc[:,'E'] = le.fit_transform(df['E'])
+	#df.loc[:,'E'] = le.fit_transform(df['E'])
 
 	#df = df.loc[df.DIRECTION==1,:]
 	# this is to drop genomes that do not have a chaperone annotated
