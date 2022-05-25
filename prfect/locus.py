@@ -121,23 +121,25 @@ class Locus(Locus, feature=Feature):
 		# ranges
 		features['MODEL'] = model
 		features['PARAM'] = param
-		nrange = [30,35,40,45,50,55,60,65,70,75,80,85,90]
-		nrange = [75,80,85,90]
-		jrange = [0, 3, 6, 9, 12, 15]
-		for n in nrange:
-			for j in jrange:
-				s = seq[ pos(i-j-n-3) : pos(i-j-3)   ].upper().replace('T','U')
-				features['LF_%s_%s_LEFT' % (n,j)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
-				features['HK_%s_%s_LEFT' % (n,j)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
-				s = seq[ i+j   : i+n+j ].upper().replace('T','U')
-				features['LF_%s_%s_RIGHT' % (n,j)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
-				features['HK_%s_%s_RIGHT' % (n,j)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+		window = [30,35,40,45,50,55,60,65,70,75,80,85,90]
+		offset = [0 , 3, 6, 9, 12, 15]
+		for w in window:
+			for o in offset:
+				s = seq[ pos(j-o-w-3) : pos(j-o-3)   ].upper().replace('T','U')
+				features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
+				features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+				s = seq[ j+o   : j+o+w ].upper().replace('T','U')
+				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
+				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 		return features
 
 	def has_backward_motif(self, seq):
 		for motif in self.backward_motifs:
-			if motif(seq):
-				return (motif.__name__, motif(seq))
+			try:
+				if motif(seq):
+					return (motif.__name__, motif(seq))
+			except:
+				pass
 		return None
 	
 	def has_forward_motif(self, seq):
@@ -145,7 +147,10 @@ class Locus(Locus, feature=Feature):
 		#	if motif(seq):
 		#		return (motif.__name__, motif(seq))
 		for motif in self.forward_motifs:
-			if motif(seq[3:7]):
-				return (motif.__name__, motif(seq[3:7]))
+			try:
+				if motif(seq[3:7]):
+					return (motif.__name__, motif(seq[3:7]))
+			except:
+				pass
 		return None
 
