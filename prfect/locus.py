@@ -20,7 +20,7 @@ from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
 model = "CC"
-param = "parameters_CC09.txt"
+param = "parameters_DP09.txt"
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 
