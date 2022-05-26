@@ -64,16 +64,14 @@ class Locus(Locus, feature=Feature):
 		self.stops = ['taa','tga','tag']
 		assert _last.strand==_curr.strand
 		d = (1+_curr.left()-_last.left())%3-1
-		left = self.last(_curr.left()-1, _last.strand, self.stops)
-		left = left + 1 if left else _curr.frame('left') - 1
-		right = self.next(_last.right()-3, _last.strand, self.stops)
-		right = right+3 if right else self.length()
+		stopL = self.last(_curr.left()-1, _last.strand, self.stops)
+		stopL = stopL + 1 if stopL else _curr.frame('left') - 1
+		stopR = self.next(_last.right()-3, _last.strand, self.stops)
+		stopR = stopR+3 if stopR else self.length()
 
-		#print(left, right) ; return
-
-		overlap = self.seq(left, right, _curr.strand)
+		overlap = self.seq(stopL, stopR, _curr.strand)
 		if not overlap: return
-		seq = self.seq(left-120, right+120, _curr.strand)
+		seq = self.seq(stopL-120, stopR+120, _curr.strand)
 		i = seq.find(overlap)
 		j = i + len(overlap) - 3
 
@@ -81,12 +79,14 @@ class Locus(Locus, feature=Feature):
 		while j > i:
 			features = self.get_features(seq, d, i, j)
 			if features:
+				features['STOPL'] = stopL
+				features['STOPR'] = stopR
 				yield features
 			j = j - 3
 
 	def get_features(self, seq, d, i, j):
 		features = dict()
-		r =  seq[ j-23  : j-3      ]
+		r  = seq[ j-23  : j-3      ]
 		e0 = seq[ j-6   : j-3    ]
 		p0 = seq[ j-3   : j      ]
 		a0 = seq[ j     : j+3    ]
@@ -94,15 +94,19 @@ class Locus(Locus, feature=Feature):
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
 		# rbs
-		features['N']         = len(seq) - j - i
-		features['DIR'] = d
-		features['E0'] = e0
-		features['P0'] = p0
-		features['A0'] = a0
-		features['R0']        = self.codon_rarity(a0)
-		features['R1']        = self.codon_rarity(a1)
-		features['RBS1']      = prodigal_score_rbs(r)
-		features['RBS2']      = self.score_rbs(r)
+		features['N']     = len(seq) - j - i
+		features['STOPL']  = None
+		features['STOPR'] = None
+		features['DIR']   = d
+		features['W']     = seq[ j-7 ]
+		features['E0']    = e0
+		features['P0']    = p0
+		features['A0']    = a0
+		features['Z']     = seq[ j+3  ]
+		features['A0%']    = self.codon_rarity(a0)
+		features['A1%']    = self.codon_rarity(a1)
+		features['RBS1']  = prodigal_score_rbs(r)
+		features['RBS2']  = self.score_rbs(r)
 		# THIS IS TO CATCH END CASES
 		#if i <= _last.left()+3:
 		#	return None
@@ -121,8 +125,8 @@ class Locus(Locus, feature=Feature):
 		# ranges
 		features['MODEL'] = model
 		features['PARAM'] = param
-		window = [30,35,40,45,50,55,60,65,70,75,80,85,90]
-		offset = [0 , 3, 6, 9, 12, 15]
+		window = [30] #,35,40,45,50,55,60,65,70,75,80,85,90]
+		offset = [0 ]#, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				s = seq[ pos(j-o-w-3) : pos(j-o-3)   ].upper().replace('T','U')
