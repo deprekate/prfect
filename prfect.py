@@ -39,8 +39,9 @@ def alert(args, label, last, curr, features):
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
 	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
-	args.outfile.print("\n")
-	args.outfile.print("                     /product=%s,%s" % (last.tags['product'],curr.tags['product']) )
+	if 'product' in last.tags or 'product' in curr.tags:
+		args.outfile.print("\n")
+		args.outfile.print("                     /product=%s,%s" % (last.tags.get('product',''),curr.tags.get('product','')) )
 	args.outfile.print("\n")
 
 flag = True
@@ -49,6 +50,7 @@ def dump(args, label, last, curr, features):
 	if flag:
 		args.outfile.print('LABEL\tLASTL\tLASTR\tCURRL\tCURRR\t')
 		args.outfile.print('\t'.join(map(str,features.keys())))
+		args.outfile.print('\n')
 		flag = False
 	args.outfile.print(label)
 	args.outfile.print('\t')
@@ -79,7 +81,7 @@ def has_prf(features):
 	#row['A1%'] = 0.03768
 	row['RATIO'] = row['A1%'] / row['A0%']
 	#row.loc[:,'GC'] = 0.4985773782524432
-	take = ['DIR', 'GC', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
 	if clf.predict(row.loc[:,take])[0] == features['DIR']:
 		return True
 		

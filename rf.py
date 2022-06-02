@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	#take = ['DIR', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
 	#take = ['DIR', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_6_LEFT', 'LF_55_6_RIGHT', 'HK_30_6_LEFT','HK_30_6_RIGHT', 'LF_30_6_LEFT','LF_30_6_RIGHT', 'LF_85_6_LEFT','LF_85_6_RIGHT']
 	#take = ['DIR', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_RIGHT','LF_40_6_RIGHT','LF_90_24_RIGHT','HK_35_6_RIGHT', 'HK_30_24_RIGHT','LF_30_24_RIGHT','LF_35_21_LEFT','HK_50_3_RIGHT']
-	take = ['DIR', 'GC', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
 
 
 	#take = take + list(df.columns[24:-6])
