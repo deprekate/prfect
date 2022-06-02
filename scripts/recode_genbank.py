@@ -43,7 +43,10 @@ if __name__ == '__main__':
 					if fs and 'ribosomal_frameshift' in fs:
 						locus = Locus(rid, values[5])
 						#locus.read_feature('CDS ' + join)
-						locus.add_feature('CDS', +1, [['1','10']])
+						a0,a1 = fs.split(':')[0].split('..')
+						pairs = [['1',str(int(a0))],[str(int(a1)-3),str(locus.length())]]
+						feature = locus.add_feature('CDS', +1, pairs)
+						feature.tags['recode'] = fs
 						outfile = open(rid, 'w')
 						locus.write(outfile)
 						outfile.close()

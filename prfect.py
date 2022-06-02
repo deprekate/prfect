@@ -38,11 +38,9 @@ def strr(x):
 def alert(args, label, last, curr, features):
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
-	args.outfile.print("     CDS   join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
+	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
 	args.outfile.print("\n")
-	args.outfile.print("           /product=%s" % last.tags['product'] )
-	args.outfile.print("\n")
-	args.outfile.print("           /product=%s" % curr.tags['product'] )
+	args.outfile.print("                     /product=%s,%s" % (last.tags['product'],curr.tags['product']) )
 	args.outfile.print("\n")
 
 flag = True
@@ -77,7 +75,10 @@ clf = pickle.load(open(path, 'rb'))
 def has_prf(features):
 	global clf
 	row = pd.DataFrame.from_dict(features,orient='index').T
+	#row['A0%'] = 0.0029
+	#row['A1%'] = 0.03768
 	row['RATIO'] = row['A1%'] / row['A0%']
+	#row.loc[:,'GC'] = 0.4985773782524432
 	take = ['DIR', 'GC', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'RATIO', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
 	if clf.predict(row.loc[:,take])[0] == features['DIR']:
 		return True
@@ -101,7 +102,8 @@ if __name__ == '__main__':
 		locus.args = args
 		_last = _curr = None
 		for feature in locus:
-			if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
+			#if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
+			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
 				a,b,c,d = map(int, sum(feature.pairs, () ))
 				if abs(c-b) < 5:
 					sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
@@ -123,8 +125,8 @@ if __name__ == '__main__':
 					for slip in locus.get_slips(_last, feature):
 						if args.dump:
 							dump(args, 0, _last, feature, slip)
-						elif False:
-							alert(args, 0, _last, feature)
+						elif has_prf(slip):
+							alert(args, 0, _last, feature, slip)
 				_last = feature
 	
 
