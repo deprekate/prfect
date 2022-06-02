@@ -94,6 +94,7 @@ class Locus(Locus, feature=Feature):
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
 		# rbs
+		features['GC']   = self.gc_content()
 		features['N']     = len(seq) - j - i
 		features['STOPL']  = None
 		features['STOPR'] = None
@@ -125,8 +126,8 @@ class Locus(Locus, feature=Feature):
 		# ranges
 		features['MODEL'] = model
 		features['PARAM'] = param
-		window = [30] #,35,40,45,50,55,60,65,70,75,80,85,90]
-		offset = [0 ]#, 3, 6, 9, 12, 15]
+		window = [35,40] #,35,40,45,50,55,60,65,70,75,80,85,90]
+		offset = [6 ]#, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				s = seq[ pos(j-o-w-3) : pos(j-o-3)   ].upper().replace('T','U')
