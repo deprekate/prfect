@@ -19,7 +19,7 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
-model = "CC"
+model = "DP"
 param = "parameters_DP09.txt"
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
@@ -71,7 +71,7 @@ class Locus(Locus, feature=Feature):
 
 		overlap = self.seq(stopL, stopR, _curr.strand)
 		if not overlap: return
-		seq = self.seq(stopL-120, stopR+120, _curr.strand)
+		seq = self.seq(stopL-150, stopR+150, _curr.strand)
 		i = seq.find(overlap)
 		j = i + len(overlap) - 3
 
@@ -112,12 +112,12 @@ class Locus(Locus, feature=Feature):
 		#if i <= _last.left()+3:
 		#	return None
 		# BACKWARDS
-		if d < 0 and self.has_backward_motif(e1+p1+a1): # and lf.fold(k)[1] / len(k) / gc < -0.1:
+		if d < 0 and self.has_backward_motif(e1+p1+a1): # and lf.fold(k)[1] / len(k) / gc < 0:
 			mot,prob = self.has_backward_motif(e1+p1+a1)
 			features['MOTIF'] = self.motif_number(mot)
 			features['PROB'] = prob
 		# FORWARD
-		elif d > 0 and self.has_forward_motif(e0+p0+a0): #and rarity(a1)/rarity(a0) > 1:
+		elif d > 0 and self.has_forward_motif(e0+p0+a0) and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
 			mot,prob = self.has_forward_motif(e0+p0+a0)
 			features['MOTIF'] = self.motif_number(mot)
 			features['PROB'] = prob
@@ -132,8 +132,8 @@ class Locus(Locus, feature=Feature):
 			for o in offset:
 				s = seq[ pos(j-o-w-3) : pos(j-o-3)   ].upper().replace('T','U')
 				features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
-				features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
-				s = seq[ j+o   : j+o+w ].upper().replace('T','U')
+				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
 				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
 				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
 		return features
