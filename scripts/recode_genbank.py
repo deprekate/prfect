@@ -37,22 +37,24 @@ if __name__ == '__main__':
 			if line.startswith('INSERT INTO molecules VALUES'):
 				line = line.rstrip().replace('INSERT INTO molecules VALUES ','')[:-1]
 				values = eval(line)
-				rid = values[1]
-				if rid in products:
-					fs = products[rid]
-					if fs and 'ribosomal_frameshift' in fs:
-						locus = Locus(rid, values[5])
-						#locus.read_feature('CDS ' + join)
-						a0,a1 = fs.split(':')[0].split('..')
-						pairs = [['1',str(int(a0))],[str(int(a1)-3),str(locus.length())]]
-						feature = locus.add_feature('CDS', +1, pairs)
-						feature.tags['recode'] = fs
-						outfile = open(rid, 'w')
-						locus.write(outfile)
-						outfile.close()
+				join = products.get(values[1], None)
+				if join:
+					locus = Locus(values[1], values[5])
+					# fix negative numbers in the genbank feature locations
+					if '-1' in join:
+						join = join.replace('-1', str(locus.length()))
+					feature = locus.read_feature('CDS ' + join)
+					#a0,a1 = fs.split(':')[0].split('..')
+					#pairs = [['1',str(int(a0))],[str(int(a1)-3),'>'+str(locus.length())]]
+					#feature = locus.add_feature('CDS', +1, pairs)
+					feature.tags['recode'] = ''
+					outfile = open(values[1], 'w')
+					locus.write(outfile)
+					outfile.close()
 	
 			elif line.startswith('INSERT INTO products VALUES '):
 				line = line.rstrip().replace('INSERT INTO products VALUES ','')[:-1]
 				values = eval(line)
-				products[values[3]] = values[6]
+				if values[6] and 'ribosomal_frameshift' in values[6]:
+					products[values[3]] = values[7]
 	
