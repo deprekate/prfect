@@ -52,10 +52,15 @@ class Locus(Locus, feature=Feature):
 		self._rbs = score_rbs.ScoreXlationInit()
 		self.backward_motifs = [is_six, is_threethree, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]
 		self.forward_motifs  = [is_four, is_three]
+		self.motifs = self.backward_motifs + self.forward_motifs
 
 	def motif_number(self, motif):
 		# sklearn requires factors to be encoded into integers
-		return [motif.__name__ for motif in self.backward_motifs + self.forward_motifs].index(motif)
+		return [motif.__name__ for motif in self.motifs].index(motif)
+	
+	def number_motif(self, number):
+		# sklearn requires factors to be encoded into integers
+		return self.motifs[number]
 
 	def score_rbs(self, rbs):
 		return self._rbs.score_init_rbs(rbs,20)[0]

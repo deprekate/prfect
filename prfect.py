@@ -39,10 +39,16 @@ def alert(args, label, last, curr, features):
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
 	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
-	if 'product' in last.tags or 'product' in curr.tags:
-		args.outfile.print("\n")
-		args.outfile.print("                     /product=%s,%s" % (last.tags.get('product',''),curr.tags.get('product','')) )
 	args.outfile.print("\n")
+	args.outfile.print("                     /ribosomal_slippage=%s" % features['DIR']  )
+	args.outfile.print("\n")
+	args.outfile.print("                     /slippery_sequence=%s" % features['W'] + features['E0'] + features['P0'] + features['A0'] )
+	args.outfile.print("\n")
+	args.outfile.print("                     /motif=%s" % args.locus.number_motif(features['MOTIF']).__name__  )
+	args.outfile.print("\n")
+	if 'product' in last.tags or 'product' in curr.tags:
+		args.outfile.print("                     /product=%s,%s" % (last.tags.get('product',''),curr.tags.get('product','')) )
+		args.outfile.print("\n")
 
 flag = True
 def dump(args, label, last, curr, features):
@@ -102,6 +108,7 @@ if __name__ == '__main__':
 		#for codon,rarity in locus.codon_rarity().items():print(codon, rarity, sep='\t')
 		locus.init()
 		locus.args = args
+		args.locus = locus
 		_last = _curr = None
 		for feature in locus:
 			#if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
