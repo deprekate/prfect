@@ -51,7 +51,9 @@ if __name__ == '__main__':
 	#he = preprocessing.OneHotEncoder()
 
 	df = pd.read_csv(args.infile, sep='\t')
-	model,param = ('CC','CC09')
+	df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
+
+	model,param = ('DP','DP09')
 	df = df.loc[(df['MODEL']==model) & (df['PARAM']==param), : ]
 	# this removes duplicate positive LABELs that are more than 10 bases away from annotated shift
 	df.loc[abs(df.STOPR - df.N - df.CURRL) > 10 ,'LABEL'] = 0
@@ -69,7 +71,7 @@ if __name__ == '__main__':
 	#take = ['DIR', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_0_LEFT', 'LF_55_0_RIGHT', 'HK_30_24_LEFT','HK_30_24_RIGHT', 'LF_30_24_LEFT','LF_30_24_RIGHT', 'LF_85_0_LEFT','LF_85_0_RIGHT']
 	#take = ['DIR', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_LEFT', 'HK_40_6_RIGHT', 'LF_55_6_LEFT', 'LF_55_6_RIGHT', 'HK_30_6_LEFT','HK_30_6_RIGHT', 'LF_30_6_LEFT','LF_30_6_RIGHT', 'LF_85_6_LEFT','LF_85_6_RIGHT']
 	#take = ['DIR', 'N','RBS1','RBS2', 'a0', 'a1', 'RATIO', 'MOTIF', 'PROB', 'HK_40_6_RIGHT','LF_40_6_RIGHT','LF_90_24_RIGHT','HK_35_6_RIGHT', 'HK_30_24_RIGHT','LF_30_24_RIGHT','LF_35_21_LEFT','HK_50_3_RIGHT']
-	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
+	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF', 'PROB',  'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT', 'HK_100_6_RIGHT']
 
 
 	#take = take + list(df.columns[24:-6])
@@ -104,7 +106,7 @@ if __name__ == '__main__':
 	for column in ['CLUSTER']:
 		for cluster in df[column].unique():
 			#cluster = "ClusterF"
-			cluster = None
+			#cluster = None
 			#print(cluster)
 
 			#X_train = df.loc[(df[column] != cluster) & (df.DIR==direction) & (df[direction]),     take     ]
@@ -127,7 +129,7 @@ if __name__ == '__main__':
 			clf = HistGradientBoostingClassifier(categorical_features=[item in ['MOTIF'] for item in X_train.columns], l2_regularization=0.0, max_iter=500).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
 			#le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
 			#print(le_name_mapping)
-			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
+			#pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
 			#tn, fp, fn, tp = confusion_matrix(Y_test, preds, labels=[0,1]).ravel()

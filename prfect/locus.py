@@ -20,7 +20,7 @@ from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
 model = "CC"
-param = "parameters_CC09.txt"
+param = "parameters_CC06.txt"
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 
@@ -131,8 +131,8 @@ class Locus(Locus, feature=Feature):
 		# ranges
 		features['MODEL'] = model
 		features['PARAM'] = param
-		window = [30,35,40,45,50,60,80,100,120]
-		offset = [0, 3, 6, 9, 12, 15]
+		window = [35,40, 100] #,45,50,60,80,100,120]
+		offset = [6] #0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				s = seq[ pos(j-o-w-3) : pos(j-o-3)   ].upper().replace('T','U')

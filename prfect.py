@@ -83,12 +83,8 @@ clf = pickle.load(open(path, 'rb'))
 def has_prf(features):
 	global clf
 	row = pd.DataFrame.from_dict(features,orient='index').T
-	#row['A0%'] = 0.0029
-	#row['A1%'] = 0.03768
-	row['RATIO'] = row['A1%'] / row['A0%']
-	#row.loc[:,'GC'] = 0.4985773782524432
-	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF', 'PROB', 'LF_35_6_RIGHT','HK_35_6_RIGHT','LF_40_6_RIGHT','HK_40_6_RIGHT']
-	if clf.predict(row.loc[:,take])[0] == features['DIR']:
+	#row['RATIO'] = row['A1%'] / row['A0%']
+	if clf.predict(row.loc[:,clf.feature_names_in_])[0] == features['DIR']:
 		return True
 		
 
