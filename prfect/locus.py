@@ -71,7 +71,7 @@ class Locus(Locus, feature=Feature):
 		stopL = self.last(curr.right()-6, last.strand, self.stops)
 		stopL = stopL + 1 if stopL else curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
-		stopR = stopR + 3 if stopR else self.length()
+		stopR = min(curr.right()-3, stopR) + 3 if stopR else self.length()
 
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
