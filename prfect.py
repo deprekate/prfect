@@ -46,6 +46,8 @@ def alert(args, label, last, curr, features):
 	args.outfile.print("\n")
 	args.outfile.print("                     /motif=%s" % args.locus.number_motif(features['MOTIF']).__name__  )
 	args.outfile.print("\n")
+	args.outfile.print("                     /label=%s" % label )
+	args.outfile.print("\n")
 	if 'product' in last.tags or 'product' in curr.tags:
 		args.outfile.print("                     /product=%s,%s" % (last.tags.get('product',''),curr.tags.get('product','')) )
 		args.outfile.print("\n")
@@ -108,23 +110,21 @@ if __name__ == '__main__':
 		_last = _curr = None
 		for feature in locus:
 			#if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
-			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
-				a,b,c,d = map(int, sum(feature.pairs, () ))
-				if abs(c-b) < 5:
-					sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
-					feature.write(sys.stderr)
-					sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
-					b = b - (b-a-2)%3
-					c = c + (d-c-2)%3
-					a,b,c,d = map(str, [a,b,c,d])
-					_last = Feature(feature.type, feature.strand, [[a,b]], locus, feature.tags)
-					_curr = Feature(feature.type, feature.strand, [[c,d]], locus, feature.tags)
-					for slip in locus.get_slips(_last, _curr):
-						if args.dump:
-							dump(args, 1, _last, _curr, slip)
-						elif has_prf(slip):
-							alert(args, 1, _last, _curr, slip)
-					_last = None
+			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 5:
+				sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
+				feature.write(sys.stderr)
+				sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
+				#b = b - (b-a-2)%3
+				#c = c + (d-c-2)%3
+				#a,b,c,d = map(str, [a,b,c,d])
+				_last = Feature(feature.type, feature.strand, [feature.pairs[0]], locus, feature.tags)
+				_curr = Feature(feature.type, feature.strand, [feature.pairs[1]], locus, feature.tags)
+				for slip in locus.get_slips(_last, _curr):
+					if args.dump:
+						dump(args, 1, _last, _curr, slip)
+					elif has_prf(slip):
+						alert(args, 1, _last, _curr, slip)
+				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
 				if _last and _last.strand==feature.strand:
 					for slip in locus.get_slips(_last, feature):

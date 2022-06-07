@@ -34,10 +34,6 @@ def rround(item, n=4):
         except:
             return item
 
-def pos(n):
-	if n >= 0:
-		return n
-	return 0
 
 class Locus(Locus, feature=Feature):
 	#def __init__(self,parent, *args, **kwargs):
@@ -53,6 +49,7 @@ class Locus(Locus, feature=Feature):
 		self.backward_motifs = [is_six, is_threethree, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]
 		self.forward_motifs  = [is_four, is_three]
 		self.motifs = self.backward_motifs + self.forward_motifs
+		self.stops = ['taa','tga','tag']
 
 	def motif_number(self, motif):
 		# sklearn requires factors to be encoded into integers
@@ -65,18 +62,23 @@ class Locus(Locus, feature=Feature):
 	def score_rbs(self, rbs):
 		return self._rbs.score_init_rbs(rbs,20)[0]
 
-	def get_slips(self, _last, _curr):
-		self.stops = ['taa','tga','tag']
-		assert _last.strand==_curr.strand
-		d = (1+_curr.left()-_last.left())%3-1
-		stopL = self.last(_curr.left()-1, _last.strand, self.stops)
-		stopL = stopL + 1 if stopL else _curr.frame('left') - 1
-		stopR = self.next(_last.right()-3, _last.strand, self.stops)
-		stopR = stopR+3 if stopR else self.length()
+	def get_slips(self, last, curr):
+		assert last.strand==curr.strand
+		d = (1+(curr.right()-2)-last.left())%3 - 1
+		# this step finds the maximum possible region between two adjacent genes
+		# where a frameshift could occur: before the stop codon of the first preceding
+		# gene and after the furthest upstream stop codon of the following second gene
+		stopL = self.last(curr.right()-6, last.strand, self.stops)
+		stopL = stopL + 1 if stopL else curr.frame('left') - 1
+		stopR = self.next(last.left()+2, last.strand, self.stops)
+		stopR = stopR + 3 if stopR else self.length()
 
-		overlap = self.seq(stopL, stopR, _curr.strand)
+		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
-		seq = self.seq(stopL-150, stopR+150, _curr.strand)
+
+		# this is to pad the ends of the above maximum possible region with flanking sequence
+		# in order to look the secondary structure within it
+		seq = self.seq(stopL-150, stopR+150, curr.strand)
 		i = seq.find(overlap)
 		j = i + len(overlap) - 3
 
@@ -98,7 +100,7 @@ class Locus(Locus, feature=Feature):
 		e1 = seq[ j-6+d : j-3+d  ]
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
-		# rbs
+		# features
 		features['GC']     = self.gc_content()
 		features['N']     = len(seq) - j - i
 		features['STOPL']  = None
@@ -108,16 +110,18 @@ class Locus(Locus, feature=Feature):
 		features['E0']    = e0
 		features['P0']    = p0
 		features['A0']    = a0
-		features['Z']     = seq[ j+3  ]
-		features['A0%']    = self.codon_rarity(a0)
-		features['A1%']    = self.codon_rarity(a1)
+		features['Z']     = seq[ j+3 ]
+		features['A0%']   = self.codon_rarity(a0)
+		features['A1%']   = self.codon_rarity(a1)
 		features['RBS1']  = prodigal_score_rbs(r)
 		features['RBS2']  = self.score_rbs(r)
 		# THIS IS TO CATCH END CASES
-		#if i <= _last.left()+3:
+		#if i <= last.left()+3:
 		#	return None
+		if any(base not in 'acgt' for base in e1+p1+a1):
+			return None
 		# BACKWARDS
-		if d < 0 and self.has_backward_motif(e1+p1+a1): # and lf.fold(k)[1] / len(k) / gc < 0:
+		elif d < 0 and self.has_backward_motif(e1+p1+a1):
 			mot,prob = self.has_backward_motif(e1+p1+a1)
 			features['MOTIF'] = self.motif_number(mot)
 			features['PROB'] = prob
@@ -128,19 +132,21 @@ class Locus(Locus, feature=Feature):
 			features['PROB'] = prob
 		else:
 			return None
+		# deal with ambiguous bases
+		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
 		features['MODEL'] = model
-		features['PARAM'] = param
+		features['PARAM'] = param.replace('parameters_','').replace('.txt','')
 		window = [35,40, 100] #,45,50,60,80,100,120]
 		offset = [6] #0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
-				s = seq[ pos(j-o-w-3) : pos(j-o-3)   ].upper().replace('T','U')
-				features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
-				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+				s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
+				features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
-				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s       )[1] / len(s) / self.gc_content(s)
-				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s, model)[1] / len(s) / self.gc_content(s)
+				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s) if s else 0
 		return features
 
 	def has_backward_motif(self, seq):

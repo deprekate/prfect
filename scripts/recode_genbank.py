@@ -36,19 +36,20 @@ if __name__ == '__main__':
 		for line in fp:
 			if line.startswith('INSERT INTO molecules VALUES'):
 				line = line.rstrip().replace('INSERT INTO molecules VALUES ','')[:-1]
-				values = eval(line)
-				join = products.get(values[1], None)
-				if join:
-					locus = Locus(values[1], values[5])
+				_,rid,_,_,loc,seq,*_ = eval(line)
+				values = products.get(rid, None)
+				if values:
+					locus = Locus(rid, seq)
 					# fix negative numbers in the genbank feature locations
-					if '-1' in join:
-						join = join.replace('-1', str(locus.length()))
-					feature = locus.read_feature('CDS ' + join)
-					#a0,a1 = fs.split(':')[0].split('..')
-					#pairs = [['1',str(int(a0))],[str(int(a1)-3),'>'+str(locus.length())]]
-					#feature = locus.add_feature('CDS', +1, pairs)
+					#if '-1' in join:
+					#	join = join.replace('-1', str(locus.length()))
+					#feature = locus.read_feature('CDS ' + join)
+					a,d = loc.split('..')
+					b,c = values[6].split(':')[0].split('..')
+					pairs = [[a,b],[c,d]]
+					feature = locus.add_feature('CDS', +1, pairs)
 					feature.tags['recode'] = ''
-					outfile = open(values[1], 'w')
+					outfile = open(rid, 'w')
 					locus.write(outfile)
 					outfile.close()
 	
@@ -56,5 +57,5 @@ if __name__ == '__main__':
 				line = line.rstrip().replace('INSERT INTO products VALUES ','')[:-1]
 				values = eval(line)
 				if values[6] and 'ribosomal_frameshift' in values[6]:
-					products[values[3]] = values[7]
+					products[values[3]] = values
 	
