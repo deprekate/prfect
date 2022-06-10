@@ -6,6 +6,7 @@ from math import log10, exp, sqrt
 import pickle
 import pkgutil
 import pkg_resources
+from math import log
 
 from genbank.locus import Locus
 from prfect.feature import Feature
@@ -19,10 +20,16 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
-model = "CC"
-param = "parameters_CC09.txt"
+model = "DP"
+param = "parameters_DP09.txt"
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
+def logZ(n):
+	if n > 0:
+		return log(n)
+	elif n < 0:
+		return log(-n)
+	return 0
 
 
 def rround(item, n=4):
@@ -145,8 +152,8 @@ class Locus(Locus, feature=Feature):
 				#features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
-				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s) if s else 0
+				features['LF_%s_%s_RIGHT' % (w,o)] = logZ(lf.fold(s      )[1]) / len(s) / self.gc_content(s) if s else 0
+				features['HK_%s_%s_RIGHT' % (w,o)] = logZ(hk.fold(s,model)[1]) / len(s) / self.gc_content(s) if s else 0
 		return features
 
 	def has_backward_motif(self, seq):

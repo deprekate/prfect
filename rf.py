@@ -16,7 +16,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.utils.class_weight import compute_sample_weight
-from sklearn.experimental import enable_hist_gradient_boosting
+#from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingClassifier, GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
@@ -95,16 +95,17 @@ if __name__ == '__main__':
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.LABEL)
 
 	TN = FP = FN = TP = 0
-	#for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
-	for column in ['CLUSTER']:
+	for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
+	#for column in ['CLUSTER']:
 		for cluster in df[column].unique():
 			#cluster = "DW"
-			#cluster = None
+			cluster = None
 			X_train = df.loc[(df[column] != cluster), take     ]
 			X_test  = df.loc[(df[column] == cluster), take     ]
 			Y_train = df.loc[(df[column] != cluster), ['LABEL'] ]
 			Z_train = df.loc[(df[column] != cluster), ['WEIGHT'] ]
 			Y_test  = df.loc[(df[column] == cluster), ['LABEL'] ]
+
 
 			tot = X_test.join(df[['GENOME','LABEL']]).loc[lambda d: d['LABEL']!=0, 'GENOME'].nunique() #.groupby(['LABEL'])['GENOME'].unique() #[1].size
 			
@@ -113,8 +114,8 @@ if __name__ == '__main__':
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=0.15, max_iter=200).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
-			preds = clf.predict(X_test)
 			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
+			preds = clf.predict(X_test)
 			
 			tem = X_test.join(df[['LABEL']])
 			tem['PRED'] = preds
@@ -128,9 +129,10 @@ if __name__ == '__main__':
 
 			TN += tn ; FP += fp ; FN += fn ; TP += tp1+tp2
 
-
+	'''
 	precis = TP / (TP+FP) if (TP+FP) else 0
 	recall = TP / (TP+FN) if (TP+FN) else 0
 	f1 = (2 * precis * recall) / (precis+recall) if (precis+recall) else 0
 	print(column, precis, recall, f1, sep='\t')
+	'''
 
