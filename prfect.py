@@ -85,7 +85,6 @@ clf = pickle.load(open(path, 'rb'))
 def has_prf(features):
 	global clf
 	row = pd.DataFrame.from_dict(features,orient='index').T
-	#row['RATIO'] = row['A1%'] / row['A0%']
 	if clf.predict(row.loc[:,clf.feature_names_in_])[0] == features['DIR']:
 		return True
 		
@@ -110,7 +109,7 @@ if __name__ == '__main__':
 		_last = _curr = None
 		for feature in locus:
 			#if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
-			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 5:
+			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
 				sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
 				feature.write(sys.stderr)
 				sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
@@ -126,6 +125,7 @@ if __name__ == '__main__':
 						alert(args, 1, _last, _curr, slip)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
+				continue
 				if _last and _last.strand==feature.strand:
 					for slip in locus.get_slips(_last, feature):
 						if args.dump:
