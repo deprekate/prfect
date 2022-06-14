@@ -108,7 +108,6 @@ if __name__ == '__main__':
 			Z_train = df.loc[(df[column] != cluster), ['WEIGHT'] ]
 			Y_test  = df.loc[(df[column] == cluster), ['LABEL'] ]
 
-
 			tot = X_test.join(df[['GENOME','LABEL']]).loc[lambda d: d['LABEL']!=0, 'GENOME'].nunique() #.groupby(['LABEL'])['GENOME'].unique() #[1].size
 			
 			if X_test.empty and cluster:
@@ -116,7 +115,6 @@ if __name__ == '__main__':
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10, max_iter=200).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
-			print(dir(clf)) ; exit()
 			#pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
