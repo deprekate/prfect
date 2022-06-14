@@ -79,12 +79,14 @@ if __name__ == '__main__':
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF', 'PROB']
 	#take = take + ['LF_30_3_RIGHT','HK_30_3_RIGHT']
 	#take = take + ['LF_35_3_RIGHT','HK_35_3_RIGHT']
-	take = take + ['LF_40_3_RIGHT','HK_40_3_RIGHT']
-	#take = take + ['LF_45_3_RIGHT', 'HK_45_3_RIGHT']
+	#take = take + ['LF_40_3_RIGHT','HK_40_3_RIGHT']
+	take = take + ['LF_45_3_RIGHT', 'HK_45_3_RIGHT']
+	#take = take + ['LF_50_3_RIGHT', 'HK_50_3_RIGHT']
 	#take = take + ['LF_60_3_RIGHT', 'HK_60_3_RIGHT']
-	take = take + ['LF_80_3_RIGHT', 'HK_80_3_RIGHT']
+	#take = take + ['LF_80_3_RIGHT', 'HK_80_3_RIGHT']
+	take = take + ['LF_90_3_RIGHT', 'HK_90_3_RIGHT']
 	#take = take + ['LF_100_3_RIGHT', 'HK_100_3_RIGHT']
-	take = take + ['LF_120_3_RIGHT', 'HK_120_3_RIGHT']
+	#take = take + ['LF_120_3_RIGHT', 'HK_120_3_RIGHT']
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -95,11 +97,11 @@ if __name__ == '__main__':
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.LABEL)
 
 	TN = FP = FN = TP = 0
-	for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
-	#for column in ['CLUSTER']:
+	#for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
+	for column in ['CLUSTER']:
 		for cluster in df[column].unique():
 			#cluster = "DW"
-			cluster = None
+			#cluster = None
 			X_train = df.loc[(df[column] != cluster), take     ]
 			X_test  = df.loc[(df[column] == cluster), take     ]
 			Y_train = df.loc[(df[column] != cluster), ['LABEL'] ]
@@ -113,8 +115,8 @@ if __name__ == '__main__':
 				continue
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
 			Classifier = HistGradientBoostingClassifier
-			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=0.15, max_iter=200).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
-			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
+			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10, max_iter=200).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
+			#pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
 			tem = X_test.join(df[['LABEL']])
@@ -129,10 +131,8 @@ if __name__ == '__main__':
 
 			TN += tn ; FP += fp ; FN += fn ; TP += tp1+tp2
 
-	'''
 	precis = TP / (TP+FP) if (TP+FP) else 0
 	recall = TP / (TP+FN) if (TP+FN) else 0
 	f1 = (2 * precis * recall) / (precis+recall) if (precis+recall) else 0
 	print(column, precis, recall, f1, sep='\t')
-	'''
 
