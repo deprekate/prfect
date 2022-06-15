@@ -13,6 +13,8 @@ import pkgutil
 import pkg_resources
 
 import pandas as pd
+import sklearn.ensemble
+from sklearn.ensemble import HistGradientBoostingClassifier
 
 sys.path.pop(0)
 from genbank.feature import Feature
@@ -79,8 +81,17 @@ def _print(self, item):
 	else:
 		self.write(str(item))
 
+class RenamingUnpickler(pickle.Unpickler):
+	def find_class(self, module, name):
+		if module == 'sklearn.ensemble._hist_gradient_boosting.loss':
+			module = 'sklearn._loss.loss'
+		return super().find_class(module, name)
+
 path = pkg_resources.resource_filename('prfect', 'all.pkl')
 #data = pkgutil.get_data(__name__, "all.pkl")
+#f = open(path,'rb')
+#print(RenamingUnpickler(f).load())
+#clf = pickle.loads(f.read().replace(b'ensemble._hist_gradient_boosting.loss',b'_loss.loss'))
 clf = pickle.load(open(path, 'rb'))
 def has_prf(features):
 	global clf
@@ -110,8 +121,8 @@ if __name__ == '__main__':
 		for feature in locus:
 			#if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
 			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
-				sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
-				feature.write(sys.stderr)
+				#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
+				#feature.write(sys.stderr)
 				#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
 				#b = b - (b-a-2)%3
 				#c = c + (d-c-2)%3

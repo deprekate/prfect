@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.class_weight import compute_sample_weight
 #from sklearn.experimental import enable_hist_gradient_boosting
-from sklearn.ensemble import HistGradientBoostingClassifier, GradientBoostingClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
+#from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 #from matplotlib import pyplot as plt
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 	for column in ['CLUSTER']:
 		for cluster in df[column].unique():
 			#cluster = "DW"
-			#cluster = None
+			cluster = None
 			X_train = df.loc[(df[column] != cluster), take     ]
 			X_test  = df.loc[(df[column] == cluster), take     ]
 			Y_train = df.loc[(df[column] != cluster), ['LABEL'] ]
@@ -114,8 +114,8 @@ if __name__ == '__main__':
 				continue
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
 			Classifier = HistGradientBoostingClassifier
-			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10, max_iter=200).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
-			#pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
+			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
+			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
 			tem = X_test.join(df[['LABEL']])
