@@ -11,16 +11,21 @@ from termcolor import colored
 import pickle
 import pkgutil
 import pkg_resources
+from packaging import version
 
 import pandas as pd
-import sklearn.ensemble
+import sklearn
+if version.parse(sklearn.__version__) < version.parse('1.0.0'):
+	from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingClassifier
+
+path = pkg_resources.resource_filename('prfect', 'all.pkl')
+clf = pickle.load(open(path, 'rb'))
 
 sys.path.pop(0)
 from genbank.feature import Feature
 #import prfect
 from prfect.file import File
-#from prfect.motif import Motif
 
 #def extra(self, value=None):
 #	return 'extra'
@@ -87,12 +92,6 @@ class RenamingUnpickler(pickle.Unpickler):
 			module = 'sklearn._loss.loss'
 		return super().find_class(module, name)
 
-path = pkg_resources.resource_filename('prfect', 'all.pkl')
-#data = pkgutil.get_data(__name__, "all.pkl")
-#f = open(path,'rb')
-#print(RenamingUnpickler(f).load())
-#clf = pickle.loads(f.read().replace(b'ensemble._hist_gradient_boosting.loss',b'_loss.loss'))
-clf = pickle.load(open(path, 'rb'))
 def has_prf(features):
 	global clf
 	row = pd.DataFrame.from_dict(features,orient='index').T

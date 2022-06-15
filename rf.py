@@ -12,13 +12,16 @@ import argparse
 from argparse import RawTextHelpFormatter
 from termcolor import colored
 import pickle
+from packaging import version
 
 import numpy as np
 import pandas as pd
-from sklearn.utils.class_weight import compute_sample_weight
-#from sklearn.experimental import enable_hist_gradient_boosting
+import sklearn
+if version.parse(sklearn.__version__) < version.parse('1.0.0'):
+	from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingClassifier
 #from sklearn.ensemble import RandomForestClassifier
+from sklearn.utils.class_weight import compute_sample_weight
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 #from matplotlib import pyplot as plt
@@ -115,7 +118,7 @@ if __name__ == '__main__':
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
-			pickle.dump(clf, open('all.pkl', 'wb')) ; exit()
+			pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
 			tem = X_test.join(df[['LABEL']])
