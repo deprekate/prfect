@@ -13,16 +13,21 @@ import pkgutil
 import pkg_resources
 from packaging import version
 
+sys.path.pop(0)
+
 import pandas as pd
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
+	path = pkg_resources.resource_filename('prfect', 'clf.0.24.0.pkl')
+elif version.parse(sklearn.__version__) < version.parse('1.1.0'):
+	path = pkg_resources.resource_filename('prfect', 'clf.1.0.pkl')
+else:
+	path = pkg_resources.resource_filename('prfect', 'clf.1.1.0.pkl')
 from sklearn.ensemble import HistGradientBoostingClassifier
-
-path = pkg_resources.resource_filename('prfect', 'all.pkl')
 clf = pickle.load(open(path, 'rb'))
 
-sys.path.pop(0)
+
 from genbank.feature import Feature
 #import prfect
 from prfect.file import File

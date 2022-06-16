@@ -118,6 +118,11 @@ if __name__ == '__main__':
 			#weights = compute_sample_weight(class_weight='balanced', y=Y_weigh.values.ravel())
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
+
+			# this is to be backwards compatible
+			if not hasattr(clf,'feature_names_in_'):
+				clf.feature_names_in_ = take
+
 			pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 			preds = clf.predict(X_test)
 			
