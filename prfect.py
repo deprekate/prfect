@@ -122,7 +122,7 @@ if __name__ == '__main__':
 						alert(args, 1, _last, _curr, slip)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				continue
+				#continue
 				if _last and _last.strand==feature.strand:
 					for slip in locus.get_slips(_last, feature):
 						if args.dump:
