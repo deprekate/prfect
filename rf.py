@@ -89,9 +89,8 @@ if __name__ == '__main__':
 	res = df.loc[:,['GENOME','LABEL','HAS','N','STOPL','STOPR', 'DIR', 'MOTIF', 'PARAM'] ]
 
 	TN = FP = FN = TP = 0
-	for param in ['DP03']: #,'DP09','CC06','CC09']:
-		for column in ['CLUSTER']: #,'SUBCLUSTER','MASH90','MASH95', 'GENOME']:
-		#for column in ['CLUSTER']:
+	for param in ['DP03','DP09','CC06','CC09']:
+		for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
 			for cluster in df[column].unique():
 				#cluster = None
 				inrows  = (df['PARAM']==param) & (df[column] != cluster) & df.HAS
