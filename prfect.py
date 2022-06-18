@@ -15,37 +15,30 @@ from packaging import version
 
 sys.path.pop(0)
 
+from genbank.feature import Feature
+from prfect.file import File
 import pandas as pd
+
+# sklearn and model persisitence is iffy
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
 	path = pkg_resources.resource_filename('prfect', 'clf.0.24.0.pkl')
 elif version.parse(sklearn.__version__) < version.parse('1.1.0'):
 	path = pkg_resources.resource_filename('prfect', 'clf.1.0.pkl')
-else:
+elif version.parse(sklearn.__version__) < version.parse('1.1.1'):
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.0.pkl')
+else:
+	path = pkg_resources.resource_filename('prfect', 'clf.1.1.1.pkl')
 from sklearn.ensemble import HistGradientBoostingClassifier
 clf = pickle.load(open(path, 'rb'))
 
 
-from genbank.feature import Feature
-#import prfect
-from prfect.file import File
-
-#def extra(self, value=None):
-#	return 'extra'
-#locus.rare_codons = MethodType(rare_codons, locus)
 
 def is_valid_file(x):
 	if not os.path.exists(x):
 		raise argparse.ArgumentTypeError("{0} does not exist".format(x))
 	return x
-
-def strr(x):
-    if isinstance(x, float):
-        return str(round(x,5))
-    else:
-        return str(x)
 
 def alert(args, label, last, curr, features):
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
@@ -91,12 +84,6 @@ def _print(self, item):
 	else:
 		self.write(str(item))
 
-class RenamingUnpickler(pickle.Unpickler):
-	def find_class(self, module, name):
-		if module == 'sklearn.ensemble._hist_gradient_boosting.loss':
-			module = 'sklearn._loss.loss'
-		return super().find_class(module, name)
-
 def has_prf(features):
 	global clf
 	row = pd.DataFrame.from_dict(features,orient='index').T
@@ -113,8 +100,6 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
 
-	
-
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
 		#for codon,rarity in locus.codon_rarity().items():print(codon, rarity, sep='\t')
@@ -128,9 +113,6 @@ if __name__ == '__main__':
 				#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
 				#feature.write(sys.stderr)
 				#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
-				#b = b - (b-a-2)%3
-				#c = c + (d-c-2)%3
-				#a,b,c,d = map(str, [a,b,c,d])
 				_last = Feature(feature.type, feature.strand, [feature.pairs[0]], locus, feature.tags)
 				_curr = Feature(feature.type, feature.strand, [feature.pairs[1]], locus, feature.tags)
 				for slip in locus.get_slips(_last, _curr):
@@ -140,7 +122,7 @@ if __name__ == '__main__':
 						alert(args, 1, _last, _curr, slip)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				#continue
+				continue
 				if _last and _last.strand==feature.strand:
 					for slip in locus.get_slips(_last, feature):
 						if args.dump:

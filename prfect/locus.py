@@ -124,12 +124,12 @@ class Locus(Locus, feature=Feature):
 		elif d < 0 and self.has_backward_motif(e1+p1+a1):
 			mot,prob = self.has_backward_motif(e1+p1+a1)
 			features['MOTIF'] = self.motif_number(mot)
-			features['PROB'] = prob
+			#features['PROB'] = prob
 		# FORWARD
 		elif d > 0 and self.has_forward_motif(e0+p0+a0) and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
 			mot,prob = self.has_forward_motif(e0+p0+a0)
 			features['MOTIF'] = self.motif_number(mot)
-			features['PROB'] = prob
+			#features['PROB'] = prob
 		else:
 			return None
 		# deal with ambiguous bases
