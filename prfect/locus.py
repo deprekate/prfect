@@ -20,8 +20,8 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
-model = "DP"
-param = "parameters_DP03.txt"
+param = "parameters_DP09.txt"
+model = param[11:13]
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 
@@ -137,7 +137,7 @@ class Locus(Locus, feature=Feature):
 		# ranges
 		features['MODEL'] = model
 		features['PARAM'] = param.replace('parameters_','').replace('.txt','')
-		window = [45,90] #30,35,40,45,50,60,80,100,120]
+		window = [40,80,120] #30,35,40,45,50,60,80,100,120]
 		offset = [3] #0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
