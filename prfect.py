@@ -33,7 +33,11 @@ else:
 from sklearn.ensemble import HistGradientBoostingClassifier
 clf = pickle.load(open(path, 'rb'))
 
-
+def strr(x):
+    if isinstance(x, float):
+        return str(round(x,5))
+    else:
+        return str(x)
 
 def is_valid_file(x):
 	if not os.path.exists(x):
@@ -122,7 +126,7 @@ if __name__ == '__main__':
 						alert(args, 1, _last, _curr, slip)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				continue
+				#continue
 				if _last and _last.strand==feature.strand:
 					for slip in locus.get_slips(_last, feature):
 						if args.dump:

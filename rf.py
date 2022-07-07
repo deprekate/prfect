@@ -66,31 +66,19 @@ if __name__ == '__main__':
 	df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	# this sets to false duplicate true LABELs that are more than 10 bases away from annotated shift
-	df.loc[abs(df.STOPR - 3 - df.N - df.CURRL) > 6 ,'LABEL'] = 0
+	df.loc[abs(df.STOPR - 3 - df.N - df.CURRL) > 10 ,'LABEL'] = 0
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF']
 	#take = take + ['LF_30_3_RIGHT','HK_30_3_RIGHT']
-	#take = take + ['LF_35_3_RIGHT','HK_35_3_RIGHT']
 	take = take + ['LF_40_3_RIGHT','HK_40_3_RIGHT']
-	#take = take + ['LF_45_3_RIGHT', 'HK_45_3_RIGHT']
 	#take = take + ['LF_50_3_RIGHT', 'HK_50_3_RIGHT']
 	#take = take + ['LF_60_3_RIGHT', 'HK_60_3_RIGHT']
-	take = take + ['LF_80_3_RIGHT', 'HK_80_3_RIGHT']
-	#take = take + ['LF_90_3_RIGHT', 'HK_90_3_RIGHT']
-	#take = take + ['LF_100_3_RIGHT', 'HK_100_3_RIGHT']
-	take = take + ['LF_120_3_RIGHT', 'HK_120_3_RIGHT']
-	#take = take + ['LF_120_3_RIGHT', 'LF_90_3_RIGHT', 'HK_35_3_RIGHT', 'LF_45_3_RIGHT','LF_50_3_RIGHT']
-	#take = take + ['LF_120_3_RIGHT', 'LF_90_3_RIGHT', 'HK_35_3_RIGHT', 'LF_45_3_RIGHT','HK_60_3_RIGHT']
-	#take = take + ['LF_120_3_RIGHT', 'LF_90_3_RIGHT', 'HK_60_3_RIGHT', 'LF_80_3_RIGHT','HK_30_3_RIGHT']
-	#take = take + ['LF_90_3_RIGHT', 'HK_60_3_RIGHT', 'LF_50_3_RIGHT', 'LF_35_3_RIGHT']
-
-	#take = take + ['LF_120_3_RIGHT', 'LF_50_3_RIGHT', 'HK_45_3_RIGHT', 'LF_90_3_RIGHT', 'HK_80_3_RIGHT', 'HK_60_3_RIGHT']
-
-	
-	#for w in [35,40,45,50,60,80,90,100,120]:
-	#	for o in [0, 3, 6, 9, 12, 15]:
-	#		take.append( 'LF_'+str(w)+'_'+str(o)+'_RIGHT')
-	#		take.append( 'HK_'+str(w)+'_'+str(o)+'_RIGHT')
+	#take = take + ['LF_70_3_RIGHT', 'HK_70_3_RIGHT']
+	#take = take + ['LF_80_3_RIGHT', 'HK_80_3_RIGHT']
+	take = take + ['LF_90_3_RIGHT', 'HK_90_3_RIGHT']
+	#take = take + ['LF_100_6_RIGHT', 'HK_100_6_RIGHT']
+	#take = take + ['LF_110_6_RIGHT', 'HK_110_6_RIGHT']
+	#take = take + ['LF_120_6_RIGHT', 'HK_120_6_RIGHT']
 
 
 	# this is to drop genomes that do not have a chaperone annotated
@@ -101,14 +89,13 @@ if __name__ == '__main__':
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
-	#print(df.loc[df.PARAM=='DP03',].groupby(['DIRLABEL']).size()) ; exit()
 	res = df.loc[:,['GENOME','LABEL','N', 'HAS','STOPL','STOPR', 'DIR', 'MOTIF', 'PARAM'] ]
 
 	TN = FP = FN = TP = 0
 	for param in ['DP03','DP09','CC06','CC09']:
 		for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
 			for cluster in df[column].unique():
-				#cluster = None
+				cluster = None
 				inrows  = (df['PARAM']==param) & (df[column] != cluster) & df.HAS
 				outrows = (df['PARAM']==param) & (df[column] == cluster) #  & df.HAS
 				X_train = df.loc[ inrows,     take   ]
@@ -138,7 +125,7 @@ if __name__ == '__main__':
 				if not hasattr(clf,'feature_names_in_'):
 					clf.feature_names_in_ = take
 	
-				#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+				pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 				res.loc[outrows, column.lower()]  = clf.predict(X_test)
 				'''

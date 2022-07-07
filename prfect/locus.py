@@ -20,7 +20,7 @@ import LinearFold as lf
 from hotknots import hotknots as hk
 # initialize everything first
 path = os.path.dirname(hk.__file__)
-param = "parameters_DP09.txt"
+param = "parameters_DP03.txt"
 model = param[11:13]
 hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
@@ -137,13 +137,15 @@ class Locus(Locus, feature=Feature):
 		# ranges
 		features['MODEL'] = model
 		features['PARAM'] = param.replace('parameters_','').replace('.txt','')
-		window = [40,80,120] #30,35,40,45,50,60,80,100,120]
-		offset = [3] #0, 3, 6, 9, 12, 15]
+		window = [30,40,50,60,70,80,90,100,110,120]
+		offset = [0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
+				# LEFT
 				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
 				#features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
+				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
 				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s) if s else 0
