@@ -142,8 +142,8 @@ class Locus(Locus, feature=Feature):
 		for w in window:
 			for o in offset:
 				# LEFT
-				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
-				#features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
+				features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
