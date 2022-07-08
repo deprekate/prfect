@@ -100,11 +100,10 @@ class Locus(Locus, feature=Feature):
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
 		# metrics
-		metrics['LOC'] = None
-		#metrics['GC']     = self.gc_content()
+		metrics['LOC']   = None
+		metrics['LABEL'] = 0
+		#metrics['GC']   = self.gc_content()
 		metrics['N']     = len(seq) - j - i
-		#metrics['STOPL']  = None
-		#metrics['STOPR'] = None
 		metrics['DIR']   = d
 		metrics['RBS1']  = prodigal_score_rbs(r)
 		metrics['RBS2']  = self.score_rbs(r)
@@ -135,7 +134,7 @@ class Locus(Locus, feature=Feature):
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = [90] #,40,50,60,70,80,90,100,110,120]
+		window = [30] #,40,50,60,70,80,90,100,110,120]
 		offset = [0] #, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:

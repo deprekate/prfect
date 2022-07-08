@@ -65,20 +65,18 @@ def alert(args, label, last, curr, metrics):
 flag = True
 def dump(args, label, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
-	if ((last.right() + curr.left()) / 2 - metrics['LOC']) > 10:
-		label = 0
+	if 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
+		metrics['LABEL'] = 1
 
 	global flag
 	if flag:
 		args.outfile.print('GENOME\t')
 		args.outfile.print('\t'.join(map(str,metrics.keys())))
-		args.outfile.print('\tLABEL\n')
+		args.outfile.print('\n')
 		flag = False
 	args.outfile.print(args.locus.name)
 	args.outfile.print('\t')
 	args.outfile.print('\t'.join(map(strr,metrics.values())))
-	args.outfile.print('\t')
-	args.outfile.print(label)
 	args.outfile.print('\n')
 
 def _print(self, item):
