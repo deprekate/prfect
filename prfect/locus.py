@@ -86,8 +86,8 @@ class Locus(Locus, feature=Feature):
 		while j > i:
 			features = self.get_features(seq, d, i, j)
 			if features:
-				features['STOPL'] = stopL
-				features['STOPR'] = stopR
+				#features['STOPL'] = stopL
+				#features['STOPR'] = stopR
 				yield features
 			j = j - 3
 
@@ -101,20 +101,18 @@ class Locus(Locus, feature=Feature):
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
 		# features
-		features['GC']     = self.gc_content()
+		#features['GC']     = self.gc_content()
 		features['N']     = len(seq) - j - i
-		features['STOPL']  = None
-		features['STOPR'] = None
+		#features['STOPL']  = None
+		#features['STOPR'] = None
 		features['DIR']   = d
-		features['W']     = seq[ j-7 ]
-		features['E0']    = e0
-		features['P0']    = p0
-		features['A0']    = a0
-		features['Z']     = seq[ j+3 ]
-		features['A0%']   = self.codon_rarity(a0)
-		features['A1%']   = self.codon_rarity(a1)
 		features['RBS1']  = prodigal_score_rbs(r)
 		features['RBS2']  = self.score_rbs(r)
+		#features['W']     = seq[ j-7 ]
+		#features['E0']    = e0
+		#features['P0']    = p0
+		#features['A0']    = a0
+		#features['Z']     = seq[ j+3 ]
 		# THIS IS TO CATCH END CASES
 		#if i <= last.left()+3:
 		#	return None
@@ -126,24 +124,24 @@ class Locus(Locus, feature=Feature):
 			features['MOTIF'] = self.motif_number(mot)
 			#features['PROB'] = prob
 		# FORWARD
-		elif d > 0 and self.has_forward_motif(e0+p0+a0) and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
+		elif d > 0 and self.has_forward_motif(e0+p0+a0): #and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
 			mot,prob = self.has_forward_motif(e0+p0+a0)
 			features['MOTIF'] = self.motif_number(mot)
 			#features['PROB'] = prob
 		else:
 			return None
+		features['A0%']   = self.codon_rarity(a0)
+		features['A1%']   = self.codon_rarity(a1)
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		features['MODEL'] = model
-		features['PARAM'] = param.replace('parameters_','').replace('.txt','')
 		window = [30,40,50,60,70,80,90,100,110,120]
 		offset = [0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				# LEFT
-				s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
-				features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
+				#features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')

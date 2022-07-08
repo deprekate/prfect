@@ -65,20 +65,21 @@ flag = True
 def dump(args, label, last, curr, features):
 	global flag
 	if flag:
-		args.outfile.print('LABEL\tLASTL\tLASTR\tCURRL\tCURRR\t')
+		#args.outfile.print('LABEL\tLASTL\tLASTR\tCURRL\tCURRR\t')
+		args.outfile.print('LABEL\t')
 		args.outfile.print('\t'.join(map(str,features.keys())))
 		args.outfile.print('\n')
 		flag = False
 	args.outfile.print(label)
 	args.outfile.print('\t')
-	args.outfile.print(last.left())
-	args.outfile.print('\t')
-	args.outfile.print(last.right())
-	args.outfile.print('\t')
-	args.outfile.print(curr.left())
-	args.outfile.print('\t')
-	args.outfile.print(curr.right())
-	args.outfile.print('\t')
+	#args.outfile.print(last.left())
+	#args.outfile.print('\t')
+	#args.outfile.print(last.right())
+	#args.outfile.print('\t')
+	#args.outfile.print(curr.left())
+	#args.outfile.print('\t')
+	#args.outfile.print(curr.right())
+	#args.outfile.print('\t')
 	args.outfile.print('\t'.join(map(strr,features.values())))
 	args.outfile.print('\n')
 
