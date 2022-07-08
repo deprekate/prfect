@@ -44,6 +44,7 @@ def is_valid_file(x):
 		raise argparse.ArgumentTypeError("{0} does not exist".format(x))
 	return x
 
+
 def alert(args, label, last, curr, metrics):
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
@@ -63,7 +64,8 @@ def alert(args, label, last, curr, metrics):
 
 flag = True
 def dump(args, label, last, curr, metrics):
-	if abs(curr.left() - metrics['LOC']) > 10:
+	# this is to set only frameshifts that occur within 10bp
+	if ((last.right() + curr.left()) / 2 - metrics['LOC']) > 10:
 		label = 0
 
 	global flag
