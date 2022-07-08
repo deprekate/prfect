@@ -35,7 +35,7 @@ clf = pickle.load(open(path, 'rb'))
 
 def strr(x):
     if isinstance(x, float):
-        return str(round(x,5))
+        return str(round(x,4))
     else:
         return str(x)
 
@@ -44,16 +44,16 @@ def is_valid_file(x):
 		raise argparse.ArgumentTypeError("{0} does not exist".format(x))
 	return x
 
-def alert(args, label, last, curr, features):
+def alert(args, label, last, curr, metrics):
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
 	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
 	args.outfile.print("\n")
-	args.outfile.print("                     /ribosomal_slippage=%s" % features['DIR']  )
+	args.outfile.print("                     /ribosomal_slippage=%s" % metrics['DIR']  )
 	args.outfile.print("\n")
-	args.outfile.print("                     /slippery_sequence=%s" % features['W'] + features['E0'] + features['P0'] + features['A0'] )
+	args.outfile.print("                     /slippery_sequence=%s" % metrics['W'] + metrics['E0'] + metrics['P0'] + metrics['A0'] )
 	args.outfile.print("\n")
-	args.outfile.print("                     /motif=%s" % args.locus.number_motif(features['MOTIF']).__name__  )
+	args.outfile.print("                     /motif=%s" % args.locus.number_motif(metrics['MOTIF']).__name__  )
 	args.outfile.print("\n")
 	args.outfile.print("                     /label=%s" % label )
 	args.outfile.print("\n")
@@ -62,25 +62,21 @@ def alert(args, label, last, curr, features):
 		args.outfile.print("\n")
 
 flag = True
-def dump(args, label, last, curr, features):
+def dump(args, label, last, curr, metrics):
+	if abs(curr.left() - metrics['LOC']) > 10:
+		label = 0
+
 	global flag
 	if flag:
-		#args.outfile.print('LABEL\tLASTL\tLASTR\tCURRL\tCURRR\t')
-		args.outfile.print('LABEL\t')
-		args.outfile.print('\t'.join(map(str,features.keys())))
-		args.outfile.print('\n')
+		args.outfile.print('GENOME\t')
+		args.outfile.print('\t'.join(map(str,metrics.keys())))
+		args.outfile.print('\tLABEL\n')
 		flag = False
-	args.outfile.print(label)
+	args.outfile.print(args.locus.name)
 	args.outfile.print('\t')
-	#args.outfile.print(last.left())
-	#args.outfile.print('\t')
-	#args.outfile.print(last.right())
-	#args.outfile.print('\t')
-	#args.outfile.print(curr.left())
-	#args.outfile.print('\t')
-	#args.outfile.print(curr.right())
-	#args.outfile.print('\t')
-	args.outfile.print('\t'.join(map(strr,features.values())))
+	args.outfile.print('\t'.join(map(strr,metrics.values())))
+	args.outfile.print('\t')
+	args.outfile.print(label)
 	args.outfile.print('\n')
 
 def _print(self, item):
@@ -89,10 +85,10 @@ def _print(self, item):
 	else:
 		self.write(str(item))
 
-def has_prf(features):
+def has_prf(metrics):
 	global clf
-	row = pd.DataFrame.from_dict(features,orient='index').T
-	if clf.predict(row.loc[:,clf.feature_names_in_])[0] == features['DIR']:
+	row = pd.DataFrame.from_dict(metrics,orient='index').T
+	if clf.predict(row.loc[:,clf.feature_names_in_])[0] == metrics['DIR']:
 		return True
 		
 
@@ -120,20 +116,20 @@ if __name__ == '__main__':
 				#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
 				_last = Feature(feature.type, feature.strand, [feature.pairs[0]], locus, feature.tags)
 				_curr = Feature(feature.type, feature.strand, [feature.pairs[1]], locus, feature.tags)
-				for slip in locus.get_slips(_last, _curr):
+				for metrics in locus.get_metrics(_last, _curr):
 					if args.dump:
-						dump(args, 1, _last, _curr, slip)
-					elif has_prf(slip):
-						alert(args, 1, _last, _curr, slip)
+						dump(args, 1, _last, _curr, metrics)
+					elif has_prf(metrics):
+						alert(args, 1, _last, _curr, metrics)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
 				#continue
 				if _last and _last.strand==feature.strand:
-					for slip in locus.get_slips(_last, feature):
+					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
-							dump(args, 0, _last, feature, slip)
-						elif has_prf(slip):
-							alert(args, 0, _last, feature, slip)
+							dump(args, 0, _last, feature, metrics)
+						elif has_prf(metrics):
+							alert(args, 0, _last, feature, metrics)
 				_last = feature
 	
 

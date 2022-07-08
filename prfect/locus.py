@@ -62,7 +62,7 @@ class Locus(Locus, feature=Feature):
 	def score_rbs(self, rbs):
 		return self._rbs.score_init_rbs(rbs,20)[0]
 
-	def get_slips(self, last, curr):
+	def get_metrics(self, last, curr):
 		assert last.strand==curr.strand
 		d = (1+(curr.right()-2)-last.left())%3 - 1
 		# this step finds the maximum possible region between two adjacent genes
@@ -84,15 +84,14 @@ class Locus(Locus, feature=Feature):
 
 		# check for slippery sequences
 		while j > i:
-			features = self.get_features(seq, d, i, j)
-			if features:
-				#features['STOPL'] = stopL
-				#features['STOPR'] = stopR
-				yield features
+			metrics = self.metrics(seq, d, i, j)
+			if metrics:
+				metrics['LOC'] = stopR - metrics['N'] - 2
+				yield metrics
 			j = j - 3
 
-	def get_features(self, seq, d, i, j):
-		features = dict()
+	def metrics(self, seq, d, i, j):
+		metrics = dict()
 		r  = seq[ j-23  : j-3      ]
 		e0 = seq[ j-6   : j-3    ]
 		p0 = seq[ j-3   : j      ]
@@ -100,19 +99,20 @@ class Locus(Locus, feature=Feature):
 		e1 = seq[ j-6+d : j-3+d  ]
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
-		# features
-		#features['GC']     = self.gc_content()
-		features['N']     = len(seq) - j - i
-		#features['STOPL']  = None
-		#features['STOPR'] = None
-		features['DIR']   = d
-		features['RBS1']  = prodigal_score_rbs(r)
-		features['RBS2']  = self.score_rbs(r)
-		#features['W']     = seq[ j-7 ]
-		#features['E0']    = e0
-		#features['P0']    = p0
-		#features['A0']    = a0
-		#features['Z']     = seq[ j+3 ]
+		# metrics
+		metrics['LOC'] = None
+		#metrics['GC']     = self.gc_content()
+		metrics['N']     = len(seq) - j - i
+		#metrics['STOPL']  = None
+		#metrics['STOPR'] = None
+		metrics['DIR']   = d
+		metrics['RBS1']  = prodigal_score_rbs(r)
+		metrics['RBS2']  = self.score_rbs(r)
+		#metrics['W']     = seq[ j-7 ]
+		#metrics['E0']    = e0
+		#metrics['P0']    = p0
+		#metrics['A0']    = a0
+		#metrics['Z']     = seq[ j+3 ]
 		# THIS IS TO CATCH END CASES
 		#if i <= last.left()+3:
 		#	return None
@@ -121,33 +121,33 @@ class Locus(Locus, feature=Feature):
 		# BACKWARDS
 		elif d < 0 and self.has_backward_motif(e1+p1+a1):
 			mot,prob = self.has_backward_motif(e1+p1+a1)
-			features['MOTIF'] = self.motif_number(mot)
-			#features['PROB'] = prob
+			metrics['MOTIF'] = self.motif_number(mot)
+			#metrics['PROB'] = prob
 		# FORWARD
 		elif d > 0 and self.has_forward_motif(e0+p0+a0): #and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
 			mot,prob = self.has_forward_motif(e0+p0+a0)
-			features['MOTIF'] = self.motif_number(mot)
-			#features['PROB'] = prob
+			metrics['MOTIF'] = self.motif_number(mot)
+			#metrics['PROB'] = prob
 		else:
 			return None
-		features['A0%']   = self.codon_rarity(a0)
-		features['A1%']   = self.codon_rarity(a1)
+		metrics['A0%']   = self.codon_rarity(a0)
+		metrics['A1%']   = self.codon_rarity(a1)
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = [30,40,50,60,70,80,90,100,110,120]
-		offset = [0, 3, 6, 9, 12, 15]
+		window = [30] #,40,50,60,70,80,90,100,110,120]
+		offset = [0] #, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				# LEFT
 				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
-				#features['LF_%s_%s_LEFT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				#features['HK_%s_%s_LEFT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
+				#metrics['LF%sL%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				#metrics['HK%sL%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
-				features['LF_%s_%s_RIGHT' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				features['HK_%s_%s_RIGHT' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s) if s else 0
-		return features
+				metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				metrics['HK%sR%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s) if s else 0
+		return metrics
 
 	def has_backward_motif(self, seq):
 		for motif in self.backward_motifs:
