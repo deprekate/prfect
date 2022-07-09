@@ -123,19 +123,19 @@ class Locus(Locus, feature=Feature):
 			metrics['MOTIF'] = self.motif_number(mot)
 			#metrics['PROB'] = prob
 		# FORWARD
-		elif d > 0 and self.has_forward_motif(e0+p0+a0): #and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
+		elif d > 0 and self.has_forward_motif(e0+p0+a0) and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
 			mot,prob = self.has_forward_motif(e0+p0+a0)
 			metrics['MOTIF'] = self.motif_number(mot)
 			#metrics['PROB'] = prob
 		else:
 			return None
-		metrics['A0%']   = self.codon_rarity(a0)
-		metrics['A1%']   = self.codon_rarity(a1)
+		metrics['A0']   = self.codon_rarity(a0)
+		metrics['A1']   = self.codon_rarity(a1)
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = [30] #,40,50,60,70,80,90,100,110,120]
-		offset = [0] #, 3, 6, 9, 12, 15]
+		window = [30,40,50,60,70,80,90,100,110,120]
+		offset = [0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				# LEFT

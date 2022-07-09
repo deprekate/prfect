@@ -35,7 +35,7 @@ clf = pickle.load(open(path, 'rb'))
 
 def strr(x):
     if isinstance(x, float):
-        return str(round(x,4))
+        return str(round(x,5))
     else:
         return str(x)
 
@@ -51,8 +51,6 @@ def alert(args, label, last, curr, metrics):
 	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
 	args.outfile.print("\n")
 	args.outfile.print("                     /ribosomal_slippage=%s" % metrics['DIR']  )
-	args.outfile.print("\n")
-	args.outfile.print("                     /slippery_sequence=%s" % metrics['W'] + metrics['E0'] + metrics['P0'] + metrics['A0'] )
 	args.outfile.print("\n")
 	args.outfile.print("                     /motif=%s" % args.locus.number_motif(metrics['MOTIF']).__name__  )
 	args.outfile.print("\n")
