@@ -63,7 +63,7 @@ def alert(args, label, last, curr, metrics):
 flag = True
 def dump(args, label, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
-	if 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
+	if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
 		metrics['LABEL'] = 1
 
 	global flag
