@@ -134,8 +134,8 @@ class Locus(Locus, feature=Feature):
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = [30,40,50,60,70,80,90,100,120]
-		offset = [0, 3, 6, 9, 12, 15]
+		window = [40,90] #30,40,50,60,70,80,90,100,120]
+		offset = [3] #0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				# LEFT

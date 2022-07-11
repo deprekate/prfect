@@ -121,7 +121,7 @@ if __name__ == '__main__':
 						alert(args, 1, _last, _curr, metrics)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				#continue
+				continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
