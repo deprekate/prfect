@@ -18,11 +18,6 @@ import pandas as pd
 
 import LinearFold as lf
 from hotknots import hotknots as hk
-# initialize everything first
-path = os.path.dirname(hk.__file__)
-param = "parameters_DP03.txt"
-model = param[11:13]
-hk.initialize( model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 
 def rround(item, n=4):
@@ -44,12 +39,18 @@ class Locus(Locus, feature=Feature):
 		#for key,value in parent.items():
 		#	self[key] = value
 
-	def init(self, *args, **kwargs):
+	def init(self, args):
 		self._rbs = score_rbs.ScoreXlationInit()
 		self.backward_motifs = [is_six, is_threethree, is_fivetwo, is_twofive, is_twofour, is_threetwotwo, is_five, is_twoonefour]
 		self.forward_motifs  = [is_four, is_three]
 		self.motifs = self.backward_motifs + self.forward_motifs
 		self.stops = ['taa','tga','tag']
+
+		# initialize everything first
+		path = os.path.dirname(hk.__file__)
+		param = "parameters_%s.txt" % args.param
+		self.model = args.param[:2]
+		hk.initialize( self.model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 	def motif_number(self, motif):
 		# sklearn requires factors to be encoded into integers
@@ -134,8 +135,8 @@ class Locus(Locus, feature=Feature):
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = [40,90] #30,40,50,60,70,80,90,100,120]
-		offset = [3] #0, 3, 6, 9, 12, 15]
+		window = [30,40,50,60,70,80,90,100,120]
+		offset = [0, 3, 6, 9, 12, 15]
 		for w in window:
 			for o in offset:
 				# LEFT
@@ -145,7 +146,7 @@ class Locus(Locus, feature=Feature):
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
 				metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				metrics['HK%sR%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s) if s else 0
+				metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
 		return metrics
 
 	def has_backward_motif(self, seq):

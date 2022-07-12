@@ -80,8 +80,8 @@ if __name__ == '__main__':
 	#df.loc[abs(df.STOPR - 3 - df.N - df.CURRL) > 10 ,'LABEL'] = 0
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	#take = take + ['LF30R3','HK30R3']
-	take = take + ['LF40R3','HK40R3']
+	take = take + ['LF30R3','HK30R3']
+	#take = take + ['LF40R3','HK40R3']
 	#take = take + ['LF50R3', 'HK50R3']
 	#take = take + ['LF60R3', 'HK60R3']
 	#take = take + ['LF70R3', 'HK70R3']
