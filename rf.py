@@ -65,20 +65,17 @@ if __name__ == '__main__':
 	# if subcluster none, set it to the cluster
 	df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
-	# this sets to false duplicate true LABELs that are more than 10 bases away from annotated shift
-	df.loc[abs(df.STOPR - 3 - df.N - df.CURRL) > 10 ,'LABEL'] = 0
-
-	take = ['DIR', 'N', 'RBS1','RBS2', 'A0%', 'A1%', 'MOTIF']
-	#take = take + ['LF_30_3_RIGHT','HK_30_3_RIGHT']
-	take = take + ['LF_40_3_RIGHT','HK_40_3_RIGHT']
-	#take = take + ['LF_50_3_RIGHT', 'HK_50_3_RIGHT']
-	#take = take + ['LF_60_3_RIGHT', 'HK_60_3_RIGHT']
-	#take = take + ['LF_70_3_RIGHT', 'HK_70_3_RIGHT']
-	#take = take + ['LF_80_3_RIGHT', 'HK_80_3_RIGHT']
-	take = take + ['LF_90_3_RIGHT', 'HK_90_3_RIGHT']
-	#take = take + ['LF_100_6_RIGHT', 'HK_100_6_RIGHT']
-	#take = take + ['LF_110_6_RIGHT', 'HK_110_6_RIGHT']
-	#take = take + ['LF_120_6_RIGHT', 'HK_120_6_RIGHT']
+	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
+	#take = take + ['LF30R3','HK30R3']
+	take = take + ['LF40R3','HK40R3']
+	#take = take + ['LF50R3', 'HK50R3']
+	#take = take + ['LF60R3', 'HK60R3']
+	#take = take + ['LF70R3', 'HK70R3']
+	#take = take + ['LF80R3', 'HK80R3']
+	take = take + ['LF90R3', 'HK90R3']
+	#take = take + ['LF100R6', 'HK100R6']
+	#take = take + ['LF110R6', 'HK110R6']
+	#take = take + ['LF120R6', 'HK120R6']
 
 
 	# this is to drop genomes that do not have a chaperone annotated
@@ -89,15 +86,15 @@ if __name__ == '__main__':
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
-	res = df.loc[:,['GENOME','LABEL','N', 'HAS','STOPL','STOPR', 'DIR', 'MOTIF', 'PARAM'] ]
+	res = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
 
 	TN = FP = FN = TP = 0
 	for param in ['DP03','DP09','CC06','CC09']:
 		for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
 			for cluster in df[column].unique():
-				cluster = None
-				inrows  = (df['PARAM']==param) & (df[column] != cluster) & df.HAS
-				outrows = (df['PARAM']==param) & (df[column] == cluster) #  & df.HAS
+				#cluster = None
+				inrows  = (df[column] != cluster) & df.HAS
+				outrows = (df[column] == cluster) #  & df.HAS
 				X_train = df.loc[ inrows,     take   ]
 				Y_train = df.loc[ inrows, ['DIRLABEL'] ]
 				Z_train = df.loc[ inrows, ['WEIGHT'] ]
@@ -125,10 +122,9 @@ if __name__ == '__main__':
 				if not hasattr(clf,'feature_names_in_'):
 					clf.feature_names_in_ = take
 	
-				pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+				#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 				res.loc[outrows, column.lower()]  = clf.predict(X_test)
-				'''
 				tem = X_test.join(df[['DIRLABEL']])
 				tem['PRED'] = clf.predict(X_test)
 				tp = tem.loc[(tem.DIRLABEL!=0) & (tem.DIRLABEL==tem.PRED),:].shape[0]
@@ -141,7 +137,6 @@ if __name__ == '__main__':
 				args.outfile.print(param, column, cluster, tn,fp,fn,tp, tot, take, sep='\t')
 				
 				TN += tn ; FP += fp ; FN += fn ; TP += tp
-				'''
 
 	res.to_csv('results.tsv', sep='\t', index=False, na_rep=None) 
 	'''
