@@ -46,6 +46,7 @@ class Locus(Locus, feature=Feature):
 		self.motifs = self.backward_motifs + self.forward_motifs
 		self.stops = ['taa','tga','tag']
 
+		self.modelfile = args.modelfile
 		# initialize everything first
 		path = os.path.dirname(hk.__file__)
 		param = "parameters_%s.txt" % args.param
@@ -135,10 +136,12 @@ class Locus(Locus, feature=Feature):
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = [30,40,50,60,70,80,90,100,120]
-		offset = [0, 3, 6, 9, 12, 15]
-		for w in window:
-			for o in offset:
+		#window = [30,40,50,60,70,80,90,100,120]
+		#offset = [0, 3, 6, 9, 12, 15]
+		#for w in window:
+		#	for o in offset:
+		for item in self.modelfile.split('.')[1].split('_'):
+				w,o = map(int,item.split('R'))
 				# LEFT
 				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
 				#metrics['LF%sL%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
