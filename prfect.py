@@ -19,14 +19,8 @@ from genbank.feature import Feature
 from prfect.file import File
 import pandas as pd
 
-os.environ["OMP_NUM_THREADS"] = "1" # export OMP_NUM_THREADS=4
-os.environ["OPENBLAS_NUM_THREADS"] = "1" # export OPENBLAS_NUM_THREADS=4
-os.environ["MKL_NUM_THREADS"] = "1" # export MKL_NUM_THREADS=6
-os.environ["VECLIB_MAXIMUM_THREADS"] = "1" # export VECLIB_MAXIMUM_THREADS=4
-os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 # sklearn and model persisitence is iffy
 import sklearn
-'''
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
 	path = pkg_resources.resource_filename('prfect', 'clf.0.24.0.pkl')
@@ -36,8 +30,8 @@ elif version.parse(sklearn.__version__) < version.parse('1.1.1'):
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.0.pkl')
 else:
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.1.pkl')
-'''
 from sklearn.ensemble import HistGradientBoostingClassifier
+clf = pickle.load(open(path, 'rb'))
 
 def strr(x):
     if isinstance(x, float):
@@ -89,9 +83,8 @@ def _print(self, item):
 	else:
 		self.write(str(item))
 
-def has_prf(metrics, path):
-	#global clf
-	clf = pickle.load(open(path, 'rb'))
+def has_prf(metrics):
+	global clf
 	row = pd.DataFrame.from_dict(metrics,orient='index').T
 	if clf.predict(row.loc[:,clf.feature_names_in_])[0] == metrics['DIR']:
 		return True
@@ -104,10 +97,8 @@ if __name__ == '__main__':
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	parser.add_argument('-d', '--dump', action="store_true")
 	parser.add_argument('-p', '--param', type=str, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
-	parser.add_argument('-m', '--modelfile')
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
-
 
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
@@ -126,16 +117,26 @@ if __name__ == '__main__':
 				for metrics in locus.get_metrics(_last, _curr):
 					if args.dump:
 						dump(args, 1, _last, _curr, metrics)
-					elif has_prf(metrics, args.modelfile):
+					elif has_prf(metrics):
 						alert(args, 1, _last, _curr, metrics)
 				_last = None
+			elif feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==3:
+				for pair1, pair2 in zip(feature.pairs, feature.pairs[1:]):
+					_last = Feature(feature.type, feature.strand, [pair1], locus, feature.tags)
+					_curr = Feature(feature.type, feature.strand, [pair2], locus, feature.tags)
+					for metrics in locus.get_metrics(_last, _curr):
+						if args.dump:
+							dump(args, 1, _last, _curr, metrics)
+						elif has_prf(metrics):
+							alert(args, 1, _last, _curr, metrics)
+				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				continue
+				#continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
 							dump(args, 0, _last, feature, metrics)
-						elif has_prf(metrics, args.modelfile):
+						elif has_prf(metrics):
 							alert(args, 0, _last, feature, metrics)
 				_last = feature
 	

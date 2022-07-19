@@ -70,7 +70,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	#parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
+	#parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
@@ -81,31 +81,13 @@ if __name__ == '__main__':
 	# if subcluster none, set it to the cluster
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
-	# this sets to false duplicate true LABELs that are more than 10 bases away from annotated shift
-	#df.loc[abs(df.STOPR - 3 - df.N - df.CURRL) > 10 ,'LABEL'] = 0
-
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	#take = take + ['LF30R3','HK30R3']
-	#take = take + ['LF40R3','HK40R3']
-	#take = take + ['LF50R3', 'HK50R3']
-	#take = take + ['LF60R3', 'HK60R3']
-	#take = take + ['LF70R3', 'HK70R3']
-	#take = take + ['LF80R3', 'HK80R3']
-	#take = take + ['LF90R3', 'HK90R3']
-	#take = take + ['LF100R6', 'HK100R6']
-	#take = take + ['LF110R6', 'HK110R6']
-	#take = take + ['LF120R6', 'HK120R6']
-	take = take + list(map(lambda s : 'LF' + s, args.param.split('_'))) 
-	take = take + list(map(lambda s : 'HK' + s, args.param.split('_'))) 
+	take = take + ['LF50R3', 'HK50R3']
+	take = take + ['LF100R3', 'HK100R3']
 
-	#df = df.loc[df.PARAM=='DP03', take]
-
-	#df = df.drop(df[((df.MOTIF==8) | (df.MOTIF==9)) & ((df.A1 / df.A0) < 1)].index)
-	
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
 	df = df.merge(has, left_on='GENOME', right_index=True)
-	#df = df.loc[df.HAS,:]
 
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
@@ -122,7 +104,7 @@ if __name__ == '__main__':
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
 
-	pickle.dump(clf, open(args.infile[5:9] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+	#pickle.dump(clf, open(args.infile[5:9] + '.' + args.param + '.pkl', 'wb')) ; exit()
+	pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 
