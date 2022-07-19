@@ -70,24 +70,12 @@ if __name__ == '__main__':
 	df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	#take = take + ['LF30R3','HK30R3']
-	#take = take + ['LF40R3','HK40R3']
-	#take = take + ['LF50R3', 'HK50R3']
-	#take = take + ['LF60R3', 'HK60R3']
-	#take = take + ['LF70R3', 'HK70R3']
-	#take = take + ['LF80R3', 'HK80R3']
-	#take = take + ['LF90R3', 'HK90R3']
-	#take = take + ['LF100R6', 'HK100R6']
-	#take = take + ['LF110R6', 'HK110R6']
-	#take = take + ['LF120R6', 'HK120R6']
-	take = take + list(map(lambda s : 'LF' + s, args.param.split('_'))) 
-	take = take + list(map(lambda s : 'HK' + s, args.param.split('_'))) 
-
+	take = take + ['LF50R3', 'HK50R3']
+	take = take + ['LF100R3', 'HK100R3']
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
 	df = df.merge(has, left_on='GENOME', right_index=True)
-	#df = df.loc[df.HAS,:]
 
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
@@ -97,7 +85,6 @@ if __name__ == '__main__':
 	TN = FP = FN = TP = 0
 	for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
 		for cluster in df[column].unique():
-			#cluster = None
 			inrows  = (df[column] != cluster) & df.HAS
 			outrows = (df[column] == cluster) #  & df.HAS
 			X_train = df.loc[ inrows,     take   ]
@@ -127,8 +114,6 @@ if __name__ == '__main__':
 			if not hasattr(clf,'feature_names_in_'):
 				clf.feature_names_in_ = take
 
-			#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
-
 			res.loc[outrows, column.lower()]  = clf.predict(X_test)
 			'''
 			tem = X_test.join(df[['DIRLABEL']])
@@ -145,8 +130,7 @@ if __name__ == '__main__':
 			TN += tn ; FP += fp ; FN += fn ; TP += tp
 			'''
 
-	mod = args.infile[5:9]
-	res.to_csv(mod + '.' + args.param + '.tsv', sep='\t', index=False, na_rep=None) 
+	res.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
 	'''
 	precis = TP / (TP+FP) if (TP+FP) else 0
 	recall = TP / (TP+FN) if (TP+FN) else 0
