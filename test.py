@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	
 	df = pd.read_csv(args.infile, sep='\t')
 
-	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
+	take = ['DIR', 'N', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = take + ['LF50R3', 'HK50R3']
 	take = take + ['LF100R3', 'HK100R3']
 

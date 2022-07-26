@@ -80,7 +80,7 @@ if __name__ == '__main__':
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
-	res = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
+	out = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
 
 	TN = FP = FN = TP = 0
 	for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
@@ -99,41 +99,6 @@ if __name__ == '__main__':
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
 
-			'''
-			result = permutation_importance(clf, X_train, Y_train.values.ravel(), n_repeats=20, random_state=0, n_jobs=-1)
-			fig, ax = plt.subplots()
-			sorted_idx = result.importances_mean.argsort()
-			ax.boxplot(result.importances[sorted_idx].T, vert=False, labels=np.array(take)[sorted_idx] )
-			ax.set_title("Permutation Importance of each feature: " + param)
-			ax.set_ylabel("Features")
-			fig.tight_layout()
-			plt.show()
-			exit()
-			'''
-			# this is to be backwards compatible
-			if not hasattr(clf,'feature_names_in_'):
-				clf.feature_names_in_ = take
+			out.loc[outrows, column.lower()]  = clf.predict(X_test)
 
-			res.loc[outrows, column.lower()]  = clf.predict(X_test)
-			'''
-			tem = X_test.join(df[['DIRLABEL']])
-			tem['PRED'] = clf.predict(X_test)
-			tp = tem.loc[(tem.DIRLABEL!=0) & (tem.DIRLABEL==tem.PRED),:].shape[0]
-			fn = tem.loc[(tem.DIRLABEL!=0) & (tem.DIRLABEL!=tem.PRED),:].shape[0]
-			tn = tem.loc[(tem.DIRLABEL==0) & (tem.DIRLABEL==tem.PRED),:].shape[0]
-			fp = tem.loc[(tem.DIRLABEL==0) & (tem.PRED!=0) & (tem.DIR==tem.PRED),:].shape[0]
-			#tot = X_test.join(df[['GENOME','LABEL']]).loc[lambda d: d['LABEL']!=0, 'GENOME'].nunique() #.groupby(['LABEL'])['GENOME'].unique() #[1].size
-			tot = X_test.join(df[['GENOME']]).loc[:, 'GENOME'].nunique() #.groupby(['LABEL'])['GENOME'].unique() #[1].size
-
-			args.outfile.print(param, column, cluster, tn,fp,fn,tp, tot, take, sep='\t')
-			
-			TN += tn ; FP += fp ; FN += fn ; TP += tp
-			'''
-
-	res.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
-	'''
-	precis = TP / (TP+FP) if (TP+FP) else 0
-	recall = TP / (TP+FN) if (TP+FN) else 0
-	f1 = (2 * precis * recall) / (precis+recall) if (precis+recall) else 0
-	print(column, precis, recall, f1, sep='\t')
-	'''
+	out.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
