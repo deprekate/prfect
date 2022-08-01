@@ -48,8 +48,8 @@ class Locus(Locus, feature=Feature):
 
 		# initialize everything first
 		path = os.path.dirname(hk.__file__)
-		param = "parameters_CC09.txt"
-		self.model = 'CC'
+		param = "parameters_DP03.txt"
+		self.model = 'DP'
 		hk.initialize( self.model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 	def motif_number(self, motif):
@@ -101,9 +101,9 @@ class Locus(Locus, feature=Feature):
 		p1 = seq[ j-3+d : j+d    ]
 		a1 = seq[ j+d   : j+3+d  ]
 		# metrics
+		#metrics['GC']   = self.gc_content()
 		metrics['LOC']   = None
 		metrics['LABEL'] = 0
-		#metrics['GC']   = self.gc_content()
 		metrics['N']     = len(seq) - j - i
 		metrics['DIR']   = d
 		metrics['RBS1']  = prodigal_score_rbs(r)
@@ -147,6 +147,10 @@ class Locus(Locus, feature=Feature):
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
 				metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
+				mfe = -lf.fold(s      )[1]
+				metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s)) if mfe>0 and self.gc_content(s) else 0
+				mfe = -hk.fold(s, self.model)[1]
+				metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s)) if mfe>0 and self.gc_content(s) else 0
 		return metrics
 
 	def has_backward_motif(self, seq):

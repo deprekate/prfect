@@ -69,6 +69,7 @@ if __name__ == '__main__':
 	# if subcluster none, set it to the cluster
 	df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
+	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = take + ['LF50R3', 'HK50R3']
 	take = take + ['LF100R3', 'HK100R3']
