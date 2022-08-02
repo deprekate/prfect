@@ -46,6 +46,10 @@ def is_valid_file(x):
 
 
 def alert(args, label, last, curr, metrics):
+	# this is to set only frameshifts that occur within 10bp
+	if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
+		metrics['LABEL'] = 1
+
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
 	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))

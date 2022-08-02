@@ -147,10 +147,10 @@ class Locus(Locus, feature=Feature):
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
 				metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
-				mfe = -lf.fold(s      )[1]
-				metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s)) if mfe>0 and self.gc_content(s) else 0
-				mfe = -hk.fold(s, self.model)[1]
-				metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s)) if mfe>0 and self.gc_content(s) else 0
+				#mfe = -lf.fold(s      )[1]
+				#metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s)) if mfe>0 and self.gc_content(s) else 0
+				#mfe = -hk.fold(s, self.model)[1]
+				#metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s)) if mfe>0 and self.gc_content(s) else 0
 		return metrics
 
 	def has_backward_motif(self, seq):
