@@ -82,8 +82,8 @@ if __name__ == '__main__':
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	take = take + ['LF60R0', 'HK60R0']
-	take = take + ['LF100R0', 'HK100R0']
+	take = take + ['LF50R3', 'HK50R3']
+	take = take + ['LF100R3', 'HK100R3']
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
