@@ -18,6 +18,7 @@ sys.path.pop(0)
 from genbank.feature import Feature
 from prfect.file import File
 import pandas as pd
+import numpy as np
 
 # sklearn and model persisitence is iffy
 import sklearn
@@ -45,10 +46,9 @@ def is_valid_file(x):
 	return x
 
 
-def alert(args, label, last, curr, metrics):
+def alert(args, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
-	if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
-		metrics['LABEL'] = 1
+	#if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
 
 	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
 	args.outfile.print("\n")
@@ -58,17 +58,15 @@ def alert(args, label, last, curr, metrics):
 	args.outfile.print("\n")
 	args.outfile.print("                     /motif=%s" % args.locus.number_motif(metrics['MOTIF']).__name__  )
 	args.outfile.print("\n")
-	args.outfile.print("                     /label=%s" % label )
+	args.outfile.print("                     /label=%s" % metrics['LABEL'] )
 	args.outfile.print("\n")
 	if 'product' in last.tags or 'product' in curr.tags:
 		args.outfile.print("                     /product=%s,%s" % (last.tags.get('product',''),curr.tags.get('product','')) )
 		args.outfile.print("\n")
 
 flag = True
-def dump(args, label, last, curr, metrics):
+def dump(args, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
-	if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
-		metrics['LABEL'] = 1
 
 	global flag
 	if flag:
@@ -90,7 +88,10 @@ def _print(self, item):
 def has_prf(metrics):
 	global clf
 	row = pd.DataFrame.from_dict(metrics,orient='index').T
-	if clf.predict(row.loc[:,clf.feature_names_in_])[0] == metrics['DIR']:
+	prob = clf.predict_proba(row.loc[:,clf.feature_names_in_])
+	metrics['pred'] = clf.classes_[np.argmax(prob)]
+	metrics['prob'] = np.max(prob)
+	if metrics['pred'] == metrics['DIR']:
 		return True
 		
 
@@ -111,7 +112,7 @@ if __name__ == '__main__':
 		args.locus = locus
 		_last = _curr = None
 		for feature in locus:
-			#if feature.is_type('CDS') and feature.is_joined() and '1' not in sum(feature.pairs, ()) and len(feature.pairs)==2 and int(feature.pairs[1][0])-int(feature.pairs[0][1]) < 100:
+			best = dict()
 			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
 				#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
 				#feature.write(sys.stderr)
@@ -119,29 +120,40 @@ if __name__ == '__main__':
 				_last = Feature(feature.type, feature.strand, [feature.pairs[0]], locus, feature.tags)
 				_curr = Feature(feature.type, feature.strand, [feature.pairs[1]], locus, feature.tags)
 				for metrics in locus.get_metrics(_last, _curr):
+					metrics['LABEL'] = 1 if 10 > ((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
 					if args.dump:
-						dump(args, 1, _last, _curr, metrics)
+						dump(args, _last, _curr, metrics)
 					elif has_prf(metrics):
-						alert(args, 1, _last, _curr, metrics)
+						if not best or metrics['prob'] > best['prob']:
+							best = metrics
+				if best:
+					alert(args, _last, _curr, best)
 				_last = None
 			elif feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==3:
 				for pair1, pair2 in zip(feature.pairs, feature.pairs[1:]):
 					_last = Feature(feature.type, feature.strand, [pair1], locus, feature.tags)
 					_curr = Feature(feature.type, feature.strand, [pair2], locus, feature.tags)
 					for metrics in locus.get_metrics(_last, _curr):
+						metrics['LABEL'] = 1
 						if args.dump:
-							dump(args, 1, _last, _curr, metrics)
+							dump(args, _last, _curr, metrics)
 						elif has_prf(metrics):
-							alert(args, 1, _last, _curr, metrics)
+							if not best or metrics['prob'] > best['prob']:
+								best = metrics
+					if best:
+						alert(args, _last, _curr, best)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
 				continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
-							dump(args, 0, _last, feature, metrics)
+							dump(args, _last, feature, metrics)
 						elif has_prf(metrics):
-							alert(args, 0, _last, feature, metrics)
+							if not best or metrics['prob'] > best['prob']:
+								best = metrics
+					if best:
+						alert(args, _last, feature, best)
 				_last = feature
 	
 

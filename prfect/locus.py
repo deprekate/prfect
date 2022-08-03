@@ -48,8 +48,8 @@ class Locus(Locus, feature=Feature):
 
 		# initialize everything first
 		path = os.path.dirname(hk.__file__)
-		param = "parameters_DP03.txt"
-		self.model = 'DP'
+		param = "parameters_CC09.txt"
+		self.model = 'CC'
 		hk.initialize( self.model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 	def motif_number(self, motif):
