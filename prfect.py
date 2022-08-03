@@ -101,15 +101,20 @@ if __name__ == '__main__':
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	parser.add_argument('-d', '--dump', action="store_true")
-	parser.add_argument('-p', '--param', type=str, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
+	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
+	
+	if args.param:
+		path = 'pkl/LG03.' + args.param + '.pkl'	
+		clf = pickle.load(open(path, 'rb'))
 
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
 		#for codon,rarity in locus.codon_rarity().items():print(codon, rarity, sep='\t')
 		locus.init(args)
 		args.locus = locus
+		locus.args = args
 		_last = _curr = None
 		for feature in locus:
 			best = dict()

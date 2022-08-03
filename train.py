@@ -70,7 +70,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	#parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-	#parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
+	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
@@ -82,8 +82,10 @@ if __name__ == '__main__':
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	take = take + ['LF50R3', 'HK50R3']
-	take = take + ['LF100R3', 'HK100R3']
+	#take = take + ['LF50R3', 'HK50R3']
+	#take = take + ['LF100R3', 'HK100R3']
+	take = take + ['LF'+item for item in args.param.split('_')]
+	take = take + ['HK'+item for item in args.param.split('_')]
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -104,7 +106,7 @@ if __name__ == '__main__':
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
 
-	#pickle.dump(clf, open(args.infile[5:9] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+	pickle.dump(clf, open('LGC9.' + args.param + '.pkl', 'wb')) ; exit()
+	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 
