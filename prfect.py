@@ -17,6 +17,11 @@ sys.path.pop(0)
 
 from genbank.feature import Feature
 from prfect.file import File
+os.environ["OMP_NUM_THREADS"] = "1" # export OMP_NUM_THREADS=4
+os.environ["OPENBLAS_NUM_THREADS"] = "1" # export OPENBLAS_NUM_THREADS=4
+os.environ["MKL_NUM_THREADS"] = "1" # export MKL_NUM_THREADS=6
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1" # export VECLIB_MAXIMUM_THREADS=4
+os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 import pandas as pd
 import numpy as np
 
@@ -32,7 +37,7 @@ elif version.parse(sklearn.__version__) < version.parse('1.1.1'):
 else:
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.1.pkl')
 from sklearn.ensemble import HistGradientBoostingClassifier
-clf = pickle.load(open(path, 'rb'))
+clf = None #pickle.load(open(path, 'rb'))
 
 def strr(x):
     if isinstance(x, float):
@@ -50,19 +55,16 @@ def alert(args, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
 	#if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
 
-	sys.stderr.write(colored("ribo frameshift detected in " + args.infile + "\n", 'red') )
-	args.outfile.print("\n")
-	args.outfile.print("     CDS             join(%s..%s,%s..%s)" % (last.left(), last.right(), curr.left(), curr.right()))
-	args.outfile.print("\n")
-	args.outfile.print("                     /ribosomal_slippage=%s" % metrics['DIR']  )
-	args.outfile.print("\n")
-	args.outfile.print("                     /motif=%s" % args.locus.number_motif(metrics['MOTIF']).__name__  )
-	args.outfile.print("\n")
-	args.outfile.print("                     /label=%s" % metrics['LABEL'] )
-	args.outfile.print("\n")
+	pairs = [[last.left(), last.right()], [curr.left(), curr.right()]]
+	feature = Feature('CDS', curr.strand, pairs, args.locus)
+	
+	feature.tags['ribosomal_slippage'] =  metrics['DIR']
+	feature.tags['motif' = args.locus.number_motif(metrics['MOTIF']).__name__
+	feature.tags['label'] = metrics['LABEL']
 	if 'product' in last.tags or 'product' in curr.tags:
-		args.outfile.print("                     /product=%s,%s" % (last.tags.get('product',''),curr.tags.get('product','')) )
-		args.outfile.print("\n")
+		feature.tags['product'] = last.tags.get('product','') + ';' + curr.tags.get('product','')
+	if args.format == 'feature':
+		feature.write(args.outfile)
 
 flag = True
 def dump(args, last, curr, metrics):
@@ -102,11 +104,12 @@ if __name__ == '__main__':
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	parser.add_argument('-d', '--dump', action="store_true")
 	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
+	parser.add_argument('-f', '--format', help='Output the features in the specified format', type=str, default='feature', choices=['tabular','genbank','feature'])
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
 	
-	if args.param:
-		path = 'pkl/LG03.' + args.param + '.pkl'	
+	if args.param and not args.dump:
+		path = 'pkl/LGC9.' + args.param + '.pkl'	
 		clf = pickle.load(open(path, 'rb'))
 
 	genbank = File(args.infile)
@@ -149,7 +152,7 @@ if __name__ == '__main__':
 						alert(args, _last, _curr, best)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				continue
+				#continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
