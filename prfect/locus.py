@@ -135,10 +135,12 @@ class Locus(Locus, feature=Feature):
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
-		offset = list(map(int, [self.args.param.split('R')[-1]]))
-		#window = [30,40,50,60,70,80,90,100,120]
-		#offset = [0,3,6,9,12,15]
+		if args.param:
+			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
+			offset = list(map(int, [self.args.param.split('R')[-1]]))
+		else:
+			window = [30,40,50,60,70,80,90,100,120]
+			offset = [0,3,6,9,12,15]
 		for w in window:
 			for o in offset:
 				# LEFT

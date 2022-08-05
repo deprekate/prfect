@@ -59,7 +59,7 @@ def alert(args, last, curr, metrics):
 	feature = Feature('CDS', curr.strand, pairs, args.locus)
 	
 	feature.tags['ribosomal_slippage'] =  metrics['DIR']
-	feature.tags['motif' = args.locus.number_motif(metrics['MOTIF']).__name__
+	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
 	feature.tags['label'] = metrics['LABEL']
 	if 'product' in last.tags or 'product' in curr.tags:
 		feature.tags['product'] = last.tags.get('product','') + ';' + curr.tags.get('product','')
