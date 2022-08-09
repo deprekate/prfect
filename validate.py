@@ -71,8 +71,10 @@ if __name__ == '__main__':
 
 	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	take = take + ['LF50R3', 'HK50R3']
-	take = take + ['LF100R3', 'HK100R3']
+	#take = take + ['LF50R3', 'HK50R3']
+	#take = take + ['LF100R3', 'HK100R3']
+	take = take + ['LF'+item for item in args.param.split('_')]
+	take = take + ['HK'+item for item in args.param.split('_')]
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -102,4 +104,5 @@ if __name__ == '__main__':
 
 			out.loc[outrows, column.lower()]  = clf.predict(X_test)
 
-	out.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
+	#out.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
+	out.to_csv(args.infile + '.'+args.param + '.tsv', sep='\t', index=False, na_rep=None) 

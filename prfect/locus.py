@@ -48,8 +48,8 @@ class Locus(Locus, feature=Feature):
 
 		# initialize everything first
 		path = os.path.dirname(hk.__file__)
-		param = "parameters_CC09.txt"
-		self.model = 'CC'
+		param = "parameters_DP03.txt"
+		self.model = 'DP'
 		hk.initialize( self.model, os.path.join(path, param ) , os.path.join(path,"multirnafold.conf"), os.path.join(path,"pkenergy.conf") )
 
 	def motif_number(self, motif):
@@ -135,7 +135,7 @@ class Locus(Locus, feature=Feature):
 		# deal with ambiguous bases
 		seq = ''.join([base if base in 'acgt' else 'a' for base in seq])
 		# ranges
-		if args.param:
+		if self.args.param:
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
@@ -149,14 +149,14 @@ class Locus(Locus, feature=Feature):
 				#metrics['HK%sL%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
-				#metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				#metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
-				mfe = -lf.fold(s      )[1]
-				metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
-				#metrics['LF%sR%s' % (w,o)] = -log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
-				mfe = -hk.fold(s, self.model)[1]
-				#metrics['HK%sR%s' % (w,o)] = -log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
-				metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
+				metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
+				#mfe = -lf.fold(s      )[1]
+				#metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
+				#metrics['LF%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
+				#mfe = -hk.fold(s, self.model)[1]
+				#metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
+				#metrics['HK%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
 		return metrics
 
 	def has_backward_motif(self, seq):

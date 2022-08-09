@@ -106,7 +106,7 @@ if __name__ == '__main__':
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
 
-	pickle.dump(clf, open('LGC9.' + args.param + '.pkl', 'wb')) ; exit()
+	pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 

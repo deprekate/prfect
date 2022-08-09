@@ -55,12 +55,13 @@ def alert(args, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
 	#if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
 
-	pairs = [[last.left(), last.right()], [curr.left(), curr.right()]]
+	pairs = [[str(last.left()), str(last.right())], [str(curr.left()), str(curr.right())]]
 	feature = Feature('CDS', curr.strand, pairs, args.locus)
 	
 	feature.tags['ribosomal_slippage'] =  metrics['DIR']
 	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
 	feature.tags['label'] = metrics['LABEL']
+	feature.tags['locus'] = args.locus.name
 	if 'product' in last.tags or 'product' in curr.tags:
 		feature.tags['product'] = last.tags.get('product','') + ';' + curr.tags.get('product','')
 	if args.format == 'feature':
@@ -104,12 +105,14 @@ if __name__ == '__main__':
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	parser.add_argument('-d', '--dump', action="store_true")
 	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
+	parser.add_argument('-m', '--model', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('-f', '--format', help='Output the features in the specified format', type=str, default='feature', choices=['tabular','genbank','feature'])
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
+
 	
 	if args.param and not args.dump:
-		path = 'pkl/LGC9.' + args.param + '.pkl'	
+		path = 'pkl/' + args.model + '.' + args.param + '.pkl'	
 		clf = pickle.load(open(path, 'rb'))
 
 	genbank = File(args.infile)
