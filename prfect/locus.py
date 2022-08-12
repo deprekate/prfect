@@ -139,8 +139,8 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [30,40,50,60,70,80,90,100,120]
-			offset = [0,3,6,9,12,15]
+			window = [30,60,120] #[30,40,50,60,70,80,90,100,120]
+			offset = [0] #0,3,6,9,12,15]
 		for w in window:
 			for o in offset:
 				# LEFT
@@ -149,14 +149,14 @@ class Locus(Locus, feature=Feature):
 				#metrics['HK%sL%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
-				metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
-				#mfe = -lf.fold(s      )[1]
+				#metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				#metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
+				mfe = -lf.fold(s      )[1]
 				#metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
-				#metrics['LF%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
-				#mfe = -hk.fold(s, self.model)[1]
+				metrics['LF%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
+				mfe = -hk.fold(s, self.model)[1]
 				#metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
-				#metrics['HK%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
+				metrics['HK%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
 		return metrics
 
 	def has_backward_motif(self, seq):
