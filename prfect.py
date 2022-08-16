@@ -61,7 +61,7 @@ def alert(args, last, curr, metrics):
 	feature.tags['ribosomal_slippage'] =  metrics['DIR']
 	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
 	feature.tags['label'] = metrics['LABEL']
-	feature.tags['locus'] = args.locus.name
+	feature.tags['locus'] = args.locus.name()
 	if 'product' in last.tags or 'product' in curr.tags:
 		feature.tags['product'] = last.tags.get('product','') + ';' + curr.tags.get('product','')
 	if args.format == 'feature':
@@ -111,9 +111,9 @@ if __name__ == '__main__':
 	args.outfile.print = _print.__get__(args.outfile)
 
 	
-	if args.param and not args.dump:
-		path = 'pkl/' + args.model + '.' + args.param + '.pkl'	
-		clf = pickle.load(open(path, 'rb'))
+	if args.model and not args.dump:
+		#path = 'pkl/' + args.model + '.' + args.param + '.pkl'	
+		clf = pickle.load(open(args.model, 'rb'))
 
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
@@ -166,5 +166,7 @@ if __name__ == '__main__':
 					if best:
 						alert(args, _last, feature, best)
 				_last = feature
+			if not best:
+				feature.write(args.outfile)
 	
 
