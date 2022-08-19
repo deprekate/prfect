@@ -82,10 +82,11 @@ if __name__ == '__main__':
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	#take = take + ['LF50R3', 'HK50R3']
-	#take = take + ['LF100R3', 'HK100R3']
-	take = take + ['LF'+item for item in args.param.split('_')]
-	take = take + ['HK'+item for item in args.param.split('_')]
+	take = take + ['LF30R0', 'HK30R0']
+	take = take + ['LF60R0', 'HK60R0']
+	take = take + ['LF120R0', 'HK120R0']
+	#take = take + ['LF'+item for item in args.param.split('_')]
+	#take = take + ['HK'+item for item in args.param.split('_')]
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -106,7 +107,7 @@ if __name__ == '__main__':
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
 
-	pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+	#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
+	pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 

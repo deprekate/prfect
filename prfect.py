@@ -37,7 +37,7 @@ elif version.parse(sklearn.__version__) < version.parse('1.1.1'):
 else:
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.1.pkl')
 from sklearn.ensemble import HistGradientBoostingClassifier
-clf = None #pickle.load(open(path, 'rb'))
+clf = pickle.load(open(path, 'rb'))
 
 def strr(x):
     if isinstance(x, float):
@@ -55,15 +55,20 @@ def alert(args, last, curr, metrics):
 	# this is to set only frameshifts that occur within 10bp
 	#if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
 
-	pairs = [[str(last.left()), str(last.right())], [str(curr.left()), str(curr.right())]]
+	pairs = [[last.left(), last.right()], [curr.left(), curr.right()]]
+	if last.strand > 0:
+		pairs[0][-1] = metrics['LOC'] + 2
+		pairs[-1][0] = metrics['LOC'] + 3 + metrics['DIR']
+	pairs = [list(map(str, lis)) for lis in pairs] 
 	feature = Feature('CDS', curr.strand, pairs, args.locus)
 	
 	feature.tags['ribosomal_slippage'] =  metrics['DIR']
 	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
 	feature.tags['label'] = metrics['LABEL']
 	feature.tags['locus'] = args.locus.name()
+	feature.tags['translation'] = feature.translation()
 	if 'product' in last.tags or 'product' in curr.tags:
-		feature.tags['product'] = last.tags.get('product','') + ';' + curr.tags.get('product','')
+		feature.tags['product'] = last.tags.get('product','')[:-1] + ';' + curr.tags.get('product','"')[1:]
 	if args.format == 'feature':
 		feature.write(args.outfile)
 
@@ -77,7 +82,7 @@ def dump(args, last, curr, metrics):
 		args.outfile.print('\t'.join(map(str,metrics.keys())))
 		args.outfile.print('\n')
 		flag = False
-	args.outfile.print(args.locus.name)
+	args.outfile.print(args.locus.name())
 	args.outfile.print('\t')
 	args.outfile.print('\t'.join(map(strr,metrics.values())))
 	args.outfile.print('\n')
@@ -168,5 +173,6 @@ if __name__ == '__main__':
 				_last = feature
 			if not best:
 				feature.write(args.outfile)
+				pass
 	
 
