@@ -37,7 +37,10 @@ elif version.parse(sklearn.__version__) < version.parse('1.1.1'):
 else:
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.1.pkl')
 from sklearn.ensemble import HistGradientBoostingClassifier
-clf = None #pickle.load(open(path, 'rb'))
+clf = None
+
+
+
 
 def strr(x):
     if isinstance(x, float):
@@ -62,22 +65,21 @@ def alert(args, last, curr, metrics):
 	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
 	feature.tags['label'] = metrics['LABEL']
 	feature.tags['locus'] = args.locus.name()
+	feature.tags['location'] = metrics['LOC']
 	if 'product' in last.tags or 'product' in curr.tags:
-		feature.tags['product'] = last.tags.get('product','') + ';' + curr.tags.get('product','')
+		feature.tags['product'] = '"' + last.tags.get('product','').replace('"','') + ';' + curr.tags.get('product','').replace('"', '') + '"'
 	if args.format == 'feature':
 		feature.write(args.outfile)
 
 flag = True
 def dump(args, last, curr, metrics):
-	# this is to set only frameshifts that occur within 10bp
-
 	global flag
 	if flag:
 		args.outfile.print('GENOME\t')
 		args.outfile.print('\t'.join(map(str,metrics.keys())))
 		args.outfile.print('\n')
 		flag = False
-	args.outfile.print(args.locus.name)
+	args.outfile.print(args.locus.name())
 	args.outfile.print('\t')
 	args.outfile.print('\t'.join(map(strr,metrics.values())))
 	args.outfile.print('\n')
@@ -109,11 +111,13 @@ if __name__ == '__main__':
 	parser.add_argument('-f', '--format', help='Output the features in the specified format', type=str, default='feature', choices=['tabular','genbank','feature'])
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
-
 	
-	if args.model and not args.dump:
-		#path = 'pkl/' + args.model + '.' + args.param + '.pkl'	
+	if args.dump:
+		pass
+	elif args.model and not args.dump:
 		clf = pickle.load(open(args.model, 'rb'))
+	else:
+		clf = pickle.load(open(path, 'rb'))
 
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
@@ -131,7 +135,11 @@ if __name__ == '__main__':
 				_last = Feature(feature.type, feature.strand, [feature.pairs[0]], locus, feature.tags)
 				_curr = Feature(feature.type, feature.strand, [feature.pairs[1]], locus, feature.tags)
 				for metrics in locus.get_metrics(_last, _curr):
-					metrics['LABEL'] = 1 if 10 > ((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
+					#metrics['LABEL'] = 1  if 10 > abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
+					metrics['LABEL'] = 1
+					if 10 < abs((_last.right() + _curr.left()) / 2 - metrics['LOC']):
+						metrics['LABEL'] = 0
+						#continue
 					if args.dump:
 						dump(args, _last, _curr, metrics)
 					elif has_prf(metrics):
@@ -166,7 +174,8 @@ if __name__ == '__main__':
 					if best:
 						alert(args, _last, feature, best)
 				_last = feature
-			if not best:
+			if not best and not args.dump:
 				feature.write(args.outfile)
+				pass
 	
 

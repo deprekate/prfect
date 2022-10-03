@@ -60,6 +60,7 @@ if __name__ == '__main__':
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	#parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
 	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
+	parser.add_argument('-g', '--genome', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
@@ -71,7 +72,6 @@ if __name__ == '__main__':
 
 	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	#take = take + ['LF50R3', 'HK50R3']
 	#take = take + ['LF50R3', 'HK50R3']
 	#take = take + ['LF100R3', 'HK100R3']
 	take = take + ['LF'+item for item in args.param.split('_')]
@@ -86,12 +86,17 @@ if __name__ == '__main__':
 
 	out = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
 
-	os.makedirs( 'pkl/' + args.param)
+	try:
+		os.makedirs( 'LPD3/pkl/' + args.param)
+		#os.makedirs( 'LPD3/pkl/50R3_100R3')
+	except:
+		pass
 
 	TN = FP = FN = TP = 0
 	for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
-		os.makedirs( 'pkl/' + args.param + '/' + column)
+		#column = 'CLUSTER' #args.genome
 		for cluster in df[column].unique():
+			#cluster = args.param
 			inrows  = (df[column] != cluster) & df.HAS
 			outrows = (df[column] == cluster) #  & df.HAS
 			X_train = df.loc[ inrows,     take   ]
@@ -106,10 +111,17 @@ if __name__ == '__main__':
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
 
-			#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.' + column + '_' + cluster + '.pkl', 'wb'))
-			pickle.dump(clf, open( 'pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
+			try:
+				os.makedirs( 'LPD3/pkl/' + args.param + '/' + column)
+				#os.makedirs( 'LPD3/pkl/50R3_100R3/' + column)
+			except:
+				pass
 
-			#out.loc[outrows, column.lower()]  = clf.predict(X_test)
+			#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.' + column + '_' + cluster + '.pkl', 'wb'))
+			#pickle.dump(clf, open( 'pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
+			pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
+			#pickle.dump(clf, open( 'LPD3/pkl/50R3_100R3/' + column + '/' + cluster + '.pkl', 'wb')) ; exit()
+
 
 	#out.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
 	#out.to_csv(args.infile + '.'+args.param + '.tsv', sep='\t', index=False, na_rep=None) 

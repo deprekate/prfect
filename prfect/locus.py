@@ -139,24 +139,27 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [30,60,120] #[30,40,50,60,70,80,90,100,120]
-			offset = [0] #0,3,6,9,12,15]
+			window = [50,100] #[30,40,50,60,80,90,100,120]
+			offset = [0]
 		for w in window:
 			for o in offset:
 				# LEFT
-				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
-				#metrics['LF%sL%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
+				s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
+				#print(s, seq[j+o:j+o+w])
+				#mfe = lf.fold(s)[1] if s else 0
+				#metrics['LF%sL%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
 				#metrics['HK%sL%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
 				# RIGHT
 				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
 				#metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
-				mfe = -lf.fold(s      )[1]
-				#metrics['LF%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
-				metrics['LF%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
-				mfe = -hk.fold(s, self.model)[1]
-				#metrics['HK%sR%s' % (w,o)] = log( mfe / self.gc_content(s) ) if mfe>0 and self.gc_content(s) else 0
-				metrics['HK%sR%s' % (w,o)] = log( mfe/len(s) + 1) / self.gc_content(s) if mfe>0 and self.gc_content(s) else 0
+				mfe = lf.fold(s)[1]
+				metrics['LF%sR%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
+				#metrics['GC%s' % w] = self.gc_content(s)
+				#metrics['LF%s' % w] = mfe/len(s)
+				mfe = hk.fold(s, self.model)[1]
+				metrics['HK%sR%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
+				#metrics['HK%s' % w] = mfe/len(s)
 		return metrics
 
 	def has_backward_motif(self, seq):
