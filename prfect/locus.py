@@ -74,18 +74,17 @@ class Locus(Locus, feature=Feature):
 		stopL = self.last(curr.right()-6, last.strand, self.stops)
 		stopL = stopL + 1 if stopL else curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
-		stopR = min(curr.right()-3, stopR) + 3 if stopR else self.length()
+		stopR = min(curr.right()-2, stopR) + 3 if stopR else self.length()
 
-		print(stopL, stopR)	
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
 
 		# this is to pad the ends of the above maximum possible region with flanking sequence
-		# in order to look the secondary structure within it
+		# in order to look for the secondary structure within it
+		# there has to be a better way to do this, it may cause errors with repeated sequence
 		seq = self.seq(stopL-150, stopR+150, curr.strand)
 		i = seq.find(overlap)
 		j = i + len(overlap) - 3
-
 		# check for slippery sequences
 		while j > i:
 			metrics = self.metrics(seq, d, i, j)
