@@ -139,6 +139,7 @@ if __name__ == '__main__':
 				for metrics in locus.get_metrics(_last, _curr):
 					#metrics['LABEL'] = 1  if 10 > abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
 					metrics['LABEL'] = 1
+					#print(_last.right() , _curr.left(), metrics['LOC'])
 					if 10 < abs((_last.right() + _curr.left()) / 2 - metrics['LOC']):
 						metrics['LABEL'] = 0
 						#continue
@@ -150,22 +151,8 @@ if __name__ == '__main__':
 				if best:
 					alert(args, _last, _curr, best)
 				_last = None
-			elif feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==3:
-				for pair1, pair2 in zip(feature.pairs, feature.pairs[1:]):
-					_last = Feature(feature.type, feature.strand, [pair1], locus, feature.tags)
-					_curr = Feature(feature.type, feature.strand, [pair2], locus, feature.tags)
-					for metrics in locus.get_metrics(_last, _curr):
-						metrics['LABEL'] = 1
-						if args.dump:
-							dump(args, _last, _curr, metrics)
-						elif has_prf(metrics):
-							if not best or metrics['prob'] > best['prob']:
-								best = metrics
-					if best:
-						alert(args, _last, _curr, best)
-				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				#continue
+				continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:

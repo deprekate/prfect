@@ -65,6 +65,8 @@ class Locus(Locus, feature=Feature):
 
 	def get_metrics(self, last, curr):
 		assert last.strand==curr.strand
+		if '<' in last.pairs[0][0]:
+				last.pairs = ((str(int(last.pairs[0][1]) % 3 + 1),last.pairs[0][1]) , )
 		d = (1+(curr.right()-2)-last.left())%3 - 1
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
@@ -74,6 +76,7 @@ class Locus(Locus, feature=Feature):
 		stopR = self.next(last.left()+2, last.strand, self.stops)
 		stopR = min(curr.right()-3, stopR) + 3 if stopR else self.length()
 
+		print(stopL, stopR)	
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
 
