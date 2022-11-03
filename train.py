@@ -106,14 +106,9 @@ if __name__ == '__main__':
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
 
-<<<<<<< HEAD
 	#pickle.dump(clf, open('DP09/pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
-	pickle.dump(clf, open('DP9/pkl/50R0_100R0/all.pkl', 'wb')) ; exit()
-	#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
-=======
+	#pickle.dump(clf, open('DP9/pkl/50R0_100R0/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
 	pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
->>>>>>> 13f306b23ea21e0e2497472d77c57066c55e4dfb
 	
 

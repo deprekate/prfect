@@ -64,10 +64,11 @@ def alert(args, last, curr, metrics):
 	
 	feature.tags['ribosomal_slippage'] =  metrics['DIR']
 	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
+	feature.tags['bases'] = metrics['BASES']
 	feature.tags['label'] = metrics['LABEL']
 	feature.tags['locus'] = args.locus.name()
 	feature.tags['location'] = metrics['LOC']
-	feature.tags['translation'] = feature.translation()
+	#feature.tags['translation'] = feature.translation()
 	if 'product' in last.tags or 'product' in curr.tags:
 		feature.tags['product'] = '"' + last.tags.get('product','').replace('"','') + ';' + curr.tags.get('product','').replace('"', '') + '"'
 	if args.format == 'feature':
@@ -140,8 +141,8 @@ if __name__ == '__main__':
 					#metrics['LABEL'] = 1  if 10 > abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
 					metrics['LABEL'] = 1
 					#print(_last.right() , _curr.left(), metrics['LOC'])
-					if 10 < abs((_last.right() + _curr.left()) / 2 - metrics['LOC']):
-						metrics['LABEL'] = 0
+					if abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) > 10:
+						metrics['LABEL'] = -1
 						#continue
 					if args.dump:
 						dump(args, _last, _curr, metrics)
@@ -152,7 +153,7 @@ if __name__ == '__main__':
 					alert(args, _last, _curr, best)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				continue
+				#continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
@@ -164,7 +165,7 @@ if __name__ == '__main__':
 						alert(args, _last, feature, best)
 				_last = feature
 			if not best and not args.dump:
-				feature.write(args.outfile)
+				#feature.write(args.outfile)
 				pass
 	
 

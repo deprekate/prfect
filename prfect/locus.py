@@ -64,18 +64,31 @@ class Locus(Locus, feature=Feature):
 		return self._rbs.score_init_rbs(rbs,20)[0]
 
 	def get_metrics(self, last, curr):
-		assert last.strand==curr.strand
+		assert last.strand==curr.strand , "different strands"
 		if '<' in last.pairs[0][0]:
+			if '>' in last.pairs[0][1]:
+				return
+			else:
 				last.pairs = ((str(int(last.pairs[0][1]) % 3 + 1),last.pairs[0][1]) , )
+		if (last.left()+2) % 3 != last.right() % 3:
+			last.pairs = ((last.pairs[0][0],str(int(last.pairs[0][1]) // 3 * 3 + (int(last.pairs[0][0])-1) % 3) ) , )
+		if (curr.left()+2) % 3 != curr.right() % 3:
+			curr.pairs = ((str(int(curr.pairs[0][0]) // 3 * 3 + (int(curr.pairs[0][1])-3) % 3), curr.pairs[0][1] ) , )
+
 		d = (1+(curr.right()-2)-last.left())%3 - 1
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene
-		stopL = self.last(curr.right()-6, last.strand, self.stops)
+		# dont use curr.right because of stopcodon readthrough
+		stopL = self.last(curr.left()+2, last.strand, self.stops)
 		stopL = stopL + 1 if stopL else curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
 		stopR = min(curr.right()-2, stopR) + 3 if stopR else self.length()
-
+		#if last.strand > 0:
+		#	print(self.name(), stopR - last.right())
+		#else:
+		#	print(self.name(), curr.left() - stopL)
+		#exit()
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
 
@@ -104,6 +117,7 @@ class Locus(Locus, feature=Feature):
 		a1 = seq[ j+d   : j+3+d  ]
 		# metrics
 		#metrics['GC']   = self.gc_content()
+		metrics['BASES'] = e1+p1+a1
 		metrics['LOC']   = None
 		metrics['LABEL'] = 0
 		metrics['N']     = len(seq) - j - i

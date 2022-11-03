@@ -2,19 +2,18 @@
 
 
 ```
-python3 prfect.py test/phiX174.gbk
+python3 prfect.py test/covid19.gbk
 ```
-and the output are the various heptamer slippery sequences followed by the mfe
+and the output are genes that are predicted to utilize programmed ribosomal frameshifing
+(any already PRF genes that use the join keyword, are split into their two parts and also predicted
 ```
-3123 3224 gaaaaa -11.2
-3123 3224 aaaaat -10.8
-3123 3224 aaaatt -9.9
-3123 3224 ggaaaa -8.6
-3199 3309 ggaaaa -8.6
-3199 3309 aaaatt -11.3
-3199 3309 caaaaa -16.8
-3199 3309 aaaaac -17.2
-3890 3936 caaaaa -15.7
-3890 3936 aaaaat -15.3
-3890 3936 aaaatt -15.3
+ribo frameshift detected in develop/prfect/test/covid19.gbk
+
+     CDS             join(266..13468,13468..21555)
+                     /ribosomal_slippage=-1
+                     /slippery_sequence=tttaaacggg
+                     /motif=is_threethree
+                     /label=1
+                     /product="ORF1ab polyprotein","ORF1ab polyprotein"
+
 ```
