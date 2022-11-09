@@ -89,6 +89,7 @@ class Locus(Locus, feature=Feature):
 		#else:
 		#	print(self.name(), curr.left() - stopL)
 		#exit()
+
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
 
@@ -102,6 +103,7 @@ class Locus(Locus, feature=Feature):
 		while j > i:
 			metrics = self.metrics(seq, d, i, j)
 			if metrics:
+				metrics['N'] = stopR - j
 				metrics['LOC'] = stopR - metrics['N'] - 2
 				yield metrics
 			j = j - 3
@@ -120,7 +122,7 @@ class Locus(Locus, feature=Feature):
 		metrics['BASES'] = e1+p1+a1
 		metrics['LOC']   = None
 		metrics['LABEL'] = 0
-		metrics['N']     = len(seq) - j - i
+		metrics['N']     = None
 		metrics['DIR']   = d
 		metrics['RBS1']  = prodigal_score_rbs(r)
 		metrics['RBS2']  = self.score_rbs(r)
