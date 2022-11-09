@@ -80,7 +80,7 @@ class Locus(Locus, feature=Feature):
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene
 		# dont use curr.right because of stopcodon readthrough
-		stopL = self.last(curr.left()+2, last.strand, self.stops)
+		stopL = self.last(curr.left()-1, last.strand, self.stops)
 		stopL = stopL + 1 if stopL else curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
 		stopR = min(curr.right()-2, stopR) + 3 if stopR else self.length()
@@ -98,15 +98,17 @@ class Locus(Locus, feature=Feature):
 		# there has to be a better way to do this, it may cause errors with repeated sequence
 		seq = self.seq(stopL-150, stopR+150, curr.strand)
 		i = seq.find(overlap)
-		j = i + len(overlap) - 3
+		j = i + len(overlap)  - 3
 		# check for slippery sequences
+		n = 1
 		while j > i:
 			metrics = self.metrics(seq, d, i, j)
 			if metrics:
-				metrics['N'] = stopR - j
+				metrics['N'] = 3 * n
 				metrics['LOC'] = stopR - metrics['N'] - 2
 				yield metrics
 			j = j - 3
+			n += 1
 
 	def metrics(self, seq, d, i, j):
 		metrics = dict()
