@@ -39,6 +39,20 @@ else:
 from sklearn.ensemble import HistGradientBoostingClassifier
 clf = None
 
+def fix_pairs(tup):
+	pairs = [list(item) for item in tup]
+	if '<' in pairs[0][0]:
+			pairs[0][0] = str(rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1 )
+	if '>' in pairs[0][1]:
+			pairs[0][1] = str(rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2 )
+	pairs = [list(map(int,item)) for item in pairs]
+	# this is to fix features that have incorrect locations by using the frame of the other end
+	if pairs[0][0] % 3 != (pairs[0][1]-2) % 3:
+		pairs[0][1] = pairs[0][1] // 3 * 3 + ((pairs[0][0])-1) % 3
+	if pairs[1][0] % 3 != (pairs[1][1]-2) % 3:
+		pairs[1][0] = pairs[1][0] // 3 * 3 + ((pairs[1][1])-2) % 3
+	return tuple([tuple(map(str,pair)) for pair in pairs])
+
 def strr(x):
     if isinstance(x, float):
         return str(round(x,5))
@@ -129,9 +143,10 @@ if __name__ == '__main__':
 		args.locus = locus
 		locus.args = args
 		_last = _curr = None
-		for feature in locus:
+		for feature in locus.features(include='CDS'):
 			best = dict()
-			if feature.is_type('CDS') and feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
+			if feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
+				feature.pairs = fix_pairs(feature.pairs)
 				#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
 				#feature.write(sys.stderr)
 				#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
@@ -153,7 +168,7 @@ if __name__ == '__main__':
 					alert(args, _last, _curr, best)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				#continue
+				continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
@@ -165,7 +180,7 @@ if __name__ == '__main__':
 						alert(args, _last, feature, best)
 				_last = feature
 			if not best and not args.dump:
-				feature.write(args.outfile)
+				#feature.write(args.outfile)
 				pass
 	
 
