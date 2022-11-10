@@ -25,11 +25,9 @@ def rint(s):
 
 def fix(tup):
 	pairs = [list(item) for item in tup]
-	if '<' in pairs[0][0] and '>' in pairs[0][1]:
-		raise Exception("Cannot have both ends undefinded: %s" % str(pairs))
-	elif '<' in pairs[0][0]:
+	if '<' in pairs[0][0]:
 			pairs[0][0] = str(rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1 )
-	elif '>' in pairs[0][1]:
+	if '>' in pairs[0][1]:
 			pairs[0][1] = str(rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2 )
 	return tuple([tuple(pair) for pair in pairs])
 
@@ -81,7 +79,7 @@ class Locus(Locus, feature=Feature):
 
 		last.pairs = fix(last.pairs)
 		curr.pairs = fix(curr.pairs)
-
+		
 		if (last.left()+2) % 3 != last.right() % 3:
 			last.pairs = ((last.pairs[0][0],str(int(last.pairs[0][1]) // 3 * 3 + (int(last.pairs[0][0])-1) % 3) ) , )
 		if (curr.left()+2) % 3 != curr.right() % 3:
