@@ -39,12 +39,19 @@ else:
 from sklearn.ensemble import HistGradientBoostingClassifier
 clf = None
 
+def rint(s):
+    return int(s.replace('<','').replace('>',''))
+
 def fix_pairs(tup):
 	pairs = [list(item) for item in tup]
 	if '<' in pairs[0][0]:
-			pairs[0][0] = str(rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1 )
+			pairs[0][0] = rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1
 	if '>' in pairs[0][1]:
-			pairs[0][1] = str(rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2 )
+			pairs[0][1] = rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2
+	if '<' in pairs[1][0]:
+			pairs[1][0] = rint(pairs[1][0]) // 3 * 3 + rint(pairs[1][1]) % 3 + 1
+	if '>' in pairs[1][1]:
+			pairs[1][1] = rint(pairs[1][1]) // 3 * 3 + rint(pairs[1][0]) % 3 + 2
 	pairs = [list(map(int,item)) for item in pairs]
 	# this is to fix features that have incorrect locations by using the frame of the other end
 	if pairs[0][0] % 3 != (pairs[0][1]-2) % 3:
@@ -168,7 +175,7 @@ if __name__ == '__main__':
 					alert(args, _last, _curr, best)
 				_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				continue
+				#continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
@@ -180,7 +187,7 @@ if __name__ == '__main__':
 						alert(args, _last, feature, best)
 				_last = feature
 			if not best and not args.dump:
-				#feature.write(args.outfile)
+				feature.write(args.outfile)
 				pass
 	
 

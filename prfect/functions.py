@@ -53,7 +53,7 @@ def is_four(seq):
 	return None
 
 def is_three(seq):
-	if is_same(seq[:3]):
+	if is_same(seq[:3]): # or seq[:3] == 'ctt':
 		return 0.0625
 	return None
 

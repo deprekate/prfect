@@ -96,7 +96,10 @@ class Locus(Locus, feature=Feature):
 			metrics = self.metrics(seq, d, i, j)
 			if metrics:
 				metrics['N'] = 3 * n
-				metrics['LOC'] = stopR - metrics['N'] - 2
+				if curr.strand > 0:
+					metrics['LOC'] = stopR - metrics['N'] - 2
+				else:
+					metrics['LOC'] = stopL + metrics['N'] - 2
 				yield metrics
 			j = j - 3
 			n += 1
