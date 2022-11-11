@@ -8,6 +8,7 @@ from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
 from types import MethodType
 from termcolor import colored
+from itertools import tee
 import pickle
 import pkgutil
 import pkg_resources
@@ -38,6 +39,12 @@ else:
 	path = pkg_resources.resource_filename('prfect', 'clf.1.1.1.pkl')
 from sklearn.ensemble import HistGradientBoostingClassifier
 clf = None
+
+def pairwise(iterable):
+    # pairwise('ABCDEFG') --> AB BC CD DE EF FG
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 def rint(s):
     return int(s.replace('<','').replace('>',''))
@@ -152,30 +159,32 @@ if __name__ == '__main__':
 		_last = _curr = None
 		for feature in locus.features(include='CDS'):
 			best = dict()
-			if feature.is_joined() and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
-				feature.pairs = fix_pairs(feature.pairs)
-				#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
-				#feature.write(sys.stderr)
-				#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
-				_last = Feature(feature.type, feature.strand, [feature.pairs[0]], locus, feature.tags)
-				_curr = Feature(feature.type, feature.strand, [feature.pairs[1]], locus, feature.tags)
-				for metrics in locus.get_metrics(_last, _curr):
-					#metrics['LABEL'] = 1  if 10 > abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
-					metrics['LABEL'] = 1
-					#print(_last.right() , _curr.left(), metrics['LOC'])
-					if abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) > 10:
-						metrics['LABEL'] = -1
-						#continue
-					if args.dump:
-						dump(args, _last, _curr, metrics)
-					elif has_prf(metrics):
-						if not best or metrics['prob'] > best['prob']:
-							best = metrics
-				if best:
-					alert(args, _last, _curr, best)
-				_last = None
+			if feature.is_joined():
+				for pairs in pairwise(feature.pairs):
+					#and len(feature.pairs)==2 and abs(int(feature.pairs[1][0])-int(feature.pairs[0][1])) < 10:
+					feature.pairs = fix_pairs(feature.pairs)
+					#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
+					#feature.write(sys.stderr)
+					#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
+					_last = Feature(feature.type, feature.strand, [pairs[0]], locus, feature.tags)
+					_curr = Feature(feature.type, feature.strand, [pairs[1]], locus, feature.tags)
+					for metrics in locus.get_metrics(_last, _curr):
+						#metrics['LABEL'] = 1  if 10 > abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
+						metrics['LABEL'] = 1
+						#print(_last.right() , _curr.left(), metrics['LOC'])
+						if abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) > 10:
+							metrics['LABEL'] = -1
+							#continue
+						if args.dump:
+							dump(args, _last, _curr, metrics)
+						elif has_prf(metrics):
+							if not best or metrics['prob'] > best['prob']:
+								best = metrics
+					if best:
+						alert(args, _last, _curr, best)
+					_last = None
 			elif feature.is_type('CDS') and len(feature.pairs)==1:
-				#continue
+				continue
 				if _last and _last.strand==feature.strand:
 					for metrics in locus.get_metrics(_last, feature):
 						if args.dump:
@@ -187,7 +196,7 @@ if __name__ == '__main__':
 						alert(args, _last, feature, best)
 				_last = feature
 			if not best and not args.dump:
-				feature.write(args.outfile)
+				#feature.write(args.outfile)
 				pass
 	
 

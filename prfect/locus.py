@@ -72,6 +72,8 @@ class Locus(Locus, feature=Feature):
 
 		d = (1+(curr.right()-2)-last.left())%3 - 1
 
+		assert d != 0 , "frameshift direction is zero"
+
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene
