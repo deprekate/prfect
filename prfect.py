@@ -156,57 +156,46 @@ if __name__ == '__main__':
 		locus.init(args)
 		args.locus = locus
 		locus.args = args
-		_last = _curr = None
-		for _curr in locus.features(include='CDS'):
-			if not _last or _last.strand!=_curr.strand:
-				pass
-			elif _last.is_joined():
-				for pairs in pairwise(_last.pairs):
-					best = dict()
-					#feature.pairs = fix_pairs(feature.pairs)
-					_last = Feature(_last.type, _last.strand, [pairs[0]], locus, _last.tags)
-					_curr = Feature(_last.type, _last.strand, [pairs[1]], locus, _last.tags)
-					for metrics in locus.get_metrics(_last, _curr):
-						#metrics['LABEL'] = 1  if 10 > abs((_last.right() + _curr.left()) / 2 - metrics['LOC']) else 0
-						gap = abs(_curr.left() - _last.right())
-						loc = (_last.right() + _curr.left()) // 2
-						if gap < 10 and metrics['LOC'] in range(loc-10, loc+10): 
-							metrics['LABEL'] = 1
-						if args.dump:
-							dump(args, _last, _curr, metrics)
-						elif has_prf(metrics):
-							if not best or metrics['prob'] > best['prob']:
-								best = metrics
-					if best:
-						alert(args, _last, _curr, best)
-			else:
+		last = curr = _last = _curr = None
+		for curr in locus.features(include='CDS'):
+			if not last:
+				last = curr
+				continue
+			if last.is_joined():
+				for pairs in pairwise(last.pairs):
+					pairs = fix_pairs(pairs)
+					_last = Feature(last.type, last.strand, [pairs[0]], locus, last.tags)
+					_curr = Feature(last.type, last.strand, [pairs[1]], locus, last.tags)
+					# skip CDS with locations seperated by more than 10bp
+					if abs(_curr.left() - _last.right()) < 10:
+						best = dict()
+						for metrics in locus.get_metrics(_last, _curr):
+							loc = (_last.right() + _curr.left()) // 2
+							# the location of the slippery site has to be within 10bp of annotation
+							if loc-10 < metrics['LOC'] < loc+10: 
+								metrics['LABEL'] = 1
+							if args.dump:
+								dump(args, _last, _curr, metrics)
+							elif has_prf(metrics):
+								if not best or metrics['prob'] > best['prob']:
+									best = metrics
+						if best:
+							alert(args, _last, _curr, best)
+					last = _curr
+			if last.strand == curr.strand:
 				best = dict()
-				for metrics in locus.get_metrics(_last, _curr):
+				for metrics in locus.get_metrics(last, curr):
 					if args.dump:
-						dump(args, _last, _curr, metrics)
+						dump(args, last, curr, metrics)
 					elif has_prf(metrics):
 						if not best or metrics['prob'] > best['prob']:
 							best = metrics
 				if best:
-					alert(args, _last, _curr, best)
-			_last = _curr
-			
-
-
-
-		exit()
-		if None:
-			if 0:
-				for pairs in pairwise(feature.pairs):
-					feature.pairs = fix_pairs(feature.pairs)
-					#sys.stderr.write(colored("Genome already has a joined feature:\n", 'red') )
-					#feature.write(sys.stderr)
-					#sys.stderr.write(colored("...splitting the feature into two for testing\n\n", 'red') )
-					_last = Feature(feature.type, feature.strand, [pairs[0]], locus, feature.tags)
-					_curr = Feature(feature.type, feature.strand, [pairs[1]], locus, feature.tags)
-					_last = None
+					alert(args, last, curr, best)
+			last = curr
+			'''	
 			if not best and not args.dump:
 				#feature.write(args.outfile)
 				pass
-	
+			'''
 

@@ -69,9 +69,10 @@ class Locus(Locus, feature=Feature):
 
 	def get_metrics(self, last, curr):
 		assert last.strand==curr.strand , "different strands"
+	
 		d = (curr.left() - last.left() + 1) % 3  - 1
-		#d = (1+last.left())-last.left())%3 - 1
 		if not d: return
+
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene
