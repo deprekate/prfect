@@ -48,12 +48,12 @@ def is_twoonefour(seq):
 	return None
 
 def is_four(seq):
-	if is_same(seq[:4]):
+	if is_same(seq[3:7]):
 		return 0.0156
 	return None
 
 def is_three(seq):
-	if is_same(seq[:3]): # or seq[:3] == 'ctt':
+	if is_same(seq[3:6]): # or seq[:3] == 'ctt':
 		return 0.0625
 	return None
 

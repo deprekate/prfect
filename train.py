@@ -78,14 +78,17 @@ if __name__ == '__main__':
 	
 	df = pd.read_csv(args.infile, sep='\t')
 
+	# deal witbh LABELS that are -1 because they are further away than where PRF annotated
+	df['LABEL'] = df['LABEL'].replace(-1, 0)
+
 	# if subcluster none, set it to the cluster
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	take = take + ['LF50R0', 'HK50R0']
-	take = take + ['LF100R0', 'HK100R0']
-	#take = take + ['LF'+item for item in args.param.split('_')]
-	#take = take + ['HK'+item for item in args.param.split('_')]
+	#take = take + ['LF50R0', 'HK50R0']
+	#take = take + ['LF100R0', 'HK100R0']
+	take = take + ['LF'+item for item in args.param.split('_')]
+	take = take + ['HK'+item for item in args.param.split('_')]
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -100,15 +103,23 @@ if __name__ == '__main__':
 
 	#X_train.to_csv('old', index=False, sep='\t') ; exit()
 	Classifier = HistGradientBoostingClassifier
-	clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
+	clf = Classifier(
+						categorical_features=[c in ['MOTIF'] for c in X_train.columns],
+						early_stopping=False,
+						l2_regularization=10
+					 ).fit(
+						X_train,
+						Y_train.values.ravel(),
+						sample_weight=Z_train.values.ravel()
+					)
 
 	# this is to be backwards compatible
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
 
-	#pickle.dump(clf, open('DP09/pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
+	pickle.dump(clf, open('DP09/pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open('DP9/pkl/50R0_100R0/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 

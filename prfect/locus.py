@@ -69,11 +69,9 @@ class Locus(Locus, feature=Feature):
 
 	def get_metrics(self, last, curr):
 		assert last.strand==curr.strand , "different strands"
-
-		d = (1+(curr.right()-2)-last.left())%3 - 1
-
-		assert d != 0 , "frameshift direction is zero in " + self.name() 
-
+		d = (curr.left() - last.left() + 1) % 3  - 1
+		#d = (1+last.left())-last.left())%3 - 1
+		if not d: return
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene
@@ -81,8 +79,8 @@ class Locus(Locus, feature=Feature):
 		stopL = self.last(curr.left()-1, last.strand, self.stops)
 		stopL = stopL + 1 if stopL else curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
-		stopR = min(curr.right()-2, stopR) + 3 if stopR else self.length()
-		
+		stopR = min(curr.right()-3, stopR) + 3 if stopR else self.length()
+
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
 
@@ -95,7 +93,7 @@ class Locus(Locus, feature=Feature):
 		# check for slippery sequences
 		n = 1
 		while j > i:
-			metrics = self.metrics(seq, d, i, j)
+			metrics = self.metrics(seq, d, j)
 			if metrics:
 				metrics['N'] = 3 * n
 				if curr.strand > 0:
@@ -106,15 +104,16 @@ class Locus(Locus, feature=Feature):
 			j = j - 3
 			n += 1
 
-	def metrics(self, seq, d, i, j):
+	def metrics(self, seq, d, j):
+		assert d , "prf direction is zero"
 		metrics = dict()
-		r  = seq[ j-23  : j-3      ]
+		r  = seq[ j-23  : j-3    ]
 		e0 = seq[ j-6   : j-3    ]
 		p0 = seq[ j-3   : j      ]
 		a0 = seq[ j     : j+3    ]
 		e1 = seq[ j-6+d : j-3+d  ]
-		p1 = seq[ j-3+d : j+d    ]
-		a1 = seq[ j+d   : j+3+d  ]
+		p1 = seq[ j-3+d : j+0+d  ]
+		a1 = seq[ j+0+d : j+3+d  ]
 		# metrics
 		#metrics['GC']   = self.gc_content()
 		metrics['BASES'] = e1+p1+a1
@@ -155,18 +154,19 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [50,100] #[30,40,50,60,80,90,100,120]
-			offset = [0]
+			window = [30,40,50,60,80,90,100,120]
+			offset = [0,3,6]
 		for w in window:
 			for o in offset:
 				# LEFT
-				s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
+				#s = seq[ j-o-w-3 : j-o-3   ].upper().replace('T','U')
 				#print(s, seq[j+o:j+o+w])
 				#mfe = lf.fold(s)[1] if s else 0
 				#metrics['LF%sL%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
 				#metrics['HK%sL%s' % (w,o)] = hk.fold(s,model)[1] / len(s) / self.gc_content(s)
+
 				# RIGHT
-				s = seq[     j+o      :     j+o+w    ].upper().replace('T','U')
+				s = seq[  j+o     : j+o+w   ].upper().replace('T','U')
 				#metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
 				mfe = lf.fold(s)[1]
@@ -188,13 +188,10 @@ class Locus(Locus, feature=Feature):
 		return None
 	
 	def has_forward_motif(self, seq):
-		#for motif in [is_hexa]: #, is_threetwo]:
-		#	if motif(seq):
-		#		return (motif.__name__, motif(seq))
 		for motif in self.forward_motifs:
 			try:
-				if motif(seq[3:7]):
-					return (motif.__name__, motif(seq[3:7]))
+				if motif(seq):
+					return (motif.__name__, motif(seq))
 			except:
 				pass
 		return None
