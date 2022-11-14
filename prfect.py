@@ -50,7 +50,7 @@ def rint(s):
     return int(s.replace('<','').replace('>',''))
 
 def fix_pairs(tup):
-	pairs = [list(item) for item in tup]
+	pairs = [list(item) if item != ('1',) else ['1','1'] for item in tup]
 	if '<' in pairs[0][0]:
 			pairs[0][0] = rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1
 	if '>' in pairs[0][1]:

@@ -155,8 +155,8 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [30,40,50,60,80,90,100,120]
-			offset = [0,3,6]
+			window = [50,100] #30,40,50,60,80,90,100,120]
+			offset = [0]
 		for w in window:
 			for o in offset:
 				# LEFT
