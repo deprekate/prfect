@@ -87,21 +87,20 @@ if __name__ == '__main__':
 	out = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
 
 	try:
-		os.makedirs( 'LPD3/pkl/' + args.param)
-		#os.makedirs( 'LPD3/pkl/50R3_100R3')
+		os.makedirs( 'DP09/pkl/' + args.param)
 	except:
 		pass
 
 	TN = FP = FN = TP = 0
-	for column in ['CLUSTER','SUBCLUSTER','MASH90','MASH95', 'GENOME']:
+	for column in ['CLUSTER','SUBCLUSTER','MASH95', 'GENOME']:
 		#column = 'CLUSTER' #args.genome
 		for cluster in df[column].unique():
 			#cluster = args.param
 			inrows  = (df[column] != cluster) & df.HAS
 			outrows = (df[column] == cluster) #  & df.HAS
 			X_train = df.loc[ inrows,     take   ]
-			Y_train = df.loc[ inrows, ['DIRLABEL'] ]
-			Z_train = df.loc[ inrows, ['WEIGHT'] ]
+			Y_train = df.loc[ inrows, ['DIRLABEL'] ].values.ravel()
+			Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
 			X_test  = df.loc[outrows,	  take   ]
 			Y_test  = df.loc[outrows, ['DIRLABEL'] ]
 
@@ -109,11 +108,18 @@ if __name__ == '__main__':
 				continue
 
 			Classifier = HistGradientBoostingClassifier
-			clf = Classifier(categorical_features=[c in ['MOTIF'] for c in X_train.columns], early_stopping=False, l2_regularization=10).fit(X_train, Y_train.values.ravel(), sample_weight=Z_train.values.ravel())
+			clf = Classifier(
+					categorical_features=[c in ['MOTIF'] for c in X_train.columns],
+					early_stopping=False,
+					l2_regularization= 1/0.001
+				).fit(
+					X_train,
+					Y_train,
+					sample_weight=Z_train
+				)
 
 			try:
-				os.makedirs( 'LPD3/pkl/' + args.param + '/' + column)
-				#os.makedirs( 'LPD3/pkl/50R3_100R3/' + column)
+				os.makedirs( 'DP09/pkl/' + args.param + '/' + column)
 			except:
 				pass
 

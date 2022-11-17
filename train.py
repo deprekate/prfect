@@ -21,6 +21,7 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1" # export VECLIB_MAXIMUM_THREADS=4
 os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 import numpy as np
 import pandas as pd
+import xgboost as xgb
 
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
@@ -78,8 +79,8 @@ if __name__ == '__main__':
 	
 	df = pd.read_csv(args.infile, sep='\t')
 
-	# deal witbh LABELS that are -1 because they are further away than where PRF annotated
-	df['LABEL'] = df['LABEL'].replace(-1, 0)
+	# deal with LABELS that are -1 because they are further away than where PRF annotated
+	#df['LABEL'] = df['LABEL'].replace(-1, 0)
 
 	# if subcluster none, set it to the cluster
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
@@ -93,24 +94,27 @@ if __name__ == '__main__':
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
 	df = df.merge(has, left_on='GENOME', right_index=True)
+	df = df.loc[df.HAS, :]
 
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
 	X_train = df.loc[ df.HAS,     take     ]
-	Y_train = df.loc[ df.HAS, ['DIRLABEL'] ]
-	Z_train = df.loc[ df.HAS,  ['WEIGHT']  ]
+	Y_train = df.loc[ df.HAS, ['DIRLABEL'] ].values.ravel()
+	Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
+	
+	#Z_train = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
 	#X_train.to_csv('old', index=False, sep='\t') ; exit()
 	Classifier = HistGradientBoostingClassifier
 	clf = Classifier(
 						categorical_features=[c in ['MOTIF'] for c in X_train.columns],
 						early_stopping=False,
-						l2_regularization=10
+						l2_regularization= 1 / 0.01 # the l2 is inverted
 					 ).fit(
 						X_train,
-						Y_train.values.ravel(),
-						sample_weight=Z_train.values.ravel()
+						Y_train,
+						sample_weight=Z_train
 					)
 
 	# this is to be backwards compatible
@@ -120,6 +124,6 @@ if __name__ == '__main__':
 	pickle.dump(clf, open('DP09/pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open('DP9/pkl/50R0_100R0/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	#pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+	#pickle.dump(clf, open('cl.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 

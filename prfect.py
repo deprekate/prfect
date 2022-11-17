@@ -8,7 +8,7 @@ from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
 from types import MethodType
 from termcolor import colored
-from itertools import tee
+from itertools import tee, chain
 import pickle
 import pkgutil
 import pkg_resources
@@ -25,6 +25,7 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1" # export VECLIB_MAXIMUM_THREADS=4
 os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 import pandas as pd
 import numpy as np
+import xgboost as xgb
 
 # sklearn and model persisitence is iffy
 import sklearn
@@ -124,6 +125,13 @@ def _print(self, item):
 def has_prf(metrics):
 	global clf
 	row = pd.DataFrame.from_dict(metrics,orient='index').T
+	#bst = xgb.Booster({'nthread': 4})  # init model
+	#bst.load_model('0001.model')  # load data
+	#dtest = xgb.DMatrix(row.loc[:,clf.feature_names_in_].values, enable_categorical=True)
+	#ypred = bst.predict(dtest, iteration_range=(0, bst.best_iteration + 1))
+	#print(ypred)
+	#return False
+	#print(clf.classes_)
 	prob = clf.predict_proba(row.loc[:,clf.feature_names_in_])
 	metrics['pred'] = clf.classes_[np.argmax(prob)]
 	metrics['prob'] = np.max(prob)
@@ -157,33 +165,9 @@ if __name__ == '__main__':
 		args.locus = locus
 		locus.args = args
 		last = curr = _last = _curr = None
-		for curr in locus.features(include='CDS'):
-			if not last:
-				last = curr
-				continue
-			if last.is_joined():
-				for pairs in pairwise(last.pairs):
-					pairs = fix_pairs(pairs)
-					_last = Feature(last.type, last.strand, [pairs[0]], locus, last.tags)
-					_curr = Feature(last.type, last.strand, [pairs[1]], locus, last.tags)
-					# skip CDS with locations seperated by more than 10bp
-					if abs(_curr.left() - _last.right()) < 10:
-						best = dict()
-						for metrics in locus.get_metrics(_last, _curr):
-							loc = (_last.right() + _curr.left()) // 2
-							# the location of the slippery site has to be within 10bp of annotation
-							if loc-10 < metrics['LOC'] < loc+10: 
-								metrics['LABEL'] = 1
-							if args.dump:
-								dump(args, _last, _curr, metrics)
-							elif has_prf(metrics):
-								if not best or metrics['prob'] > best['prob']:
-									best = metrics
-						if best:
-							alert(args, _last, _curr, best)
-					last = _curr
-			if last.strand == curr.strand:
-				best = dict()
+		for curr in sorted(locus.features(include='CDS')):
+			best = dict()
+			if last and last.strand == curr.strand:
 				for metrics in locus.get_metrics(last, curr):
 					if args.dump:
 						dump(args, last, curr, metrics)
@@ -192,10 +176,31 @@ if __name__ == '__main__':
 							best = metrics
 				if best:
 					alert(args, last, curr, best)
+			if curr.is_joined():
+				for pairs in pairwise(curr.pairs):
+					best = dict()
+					pairs = fix_pairs(pairs)
+					_last = Feature(curr.type, curr.strand, [pairs[0]], locus, curr.tags)
+					_curr = Feature(curr.type, curr.strand, [pairs[1]], locus, curr.tags)
+					# skip CDS with locations seperated by more than 10bp
+					if abs(_curr.left() - _last.right()) < 10:
+						for metrics in locus.get_metrics(_last, _curr):
+							loc = (_last.right() + _curr.left()) // 2
+							# the location of the slippery site has to be within 10bp of annotation
+							if loc-10 < metrics['LOC'] < loc+10: 
+								metrics['LABEL'] = 1
+							else:
+								metrics['LABEL'] = -1
+							if args.dump:
+								dump(args, _last, _curr, metrics)
+							elif has_prf(metrics):
+								if not best or metrics['prob'] > best['prob']:
+									best = metrics
+						if best:
+							alert(args, _last, _curr, best)
+						elif not args.dump:
+							curr.write(args.outfile)
+							pass
+				curr = _curr
 			last = curr
-			'''	
-			if not best and not args.dump:
-				#feature.write(args.outfile)
-				pass
-			'''
 
