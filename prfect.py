@@ -25,7 +25,7 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1" # export VECLIB_MAXIMUM_THREADS=4
 os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 import pandas as pd
 import numpy as np
-import xgboost as xgb
+#import xgboost as xgb
 
 # sklearn and model persisitence is iffy
 import sklearn
