@@ -86,10 +86,11 @@ if __name__ == '__main__':
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	#take = take + ['LF50R0', 'HK50R0']
-	#take = take + ['LF100R0', 'HK100R0']
-	take = take + ['LF'+item for item in args.param.split('_')]
-	take = take + ['HK'+item for item in args.param.split('_')]
+	take = take + ['LF50R0', 'HK50R0']
+	take = take + ['LF100R0', 'HK100R0']
+	#take = take + ['LF'+item for item in args.param.split('_')]
+	#take = take + ['HK'+item for item in args.param.split('_')]
+	l2 = float(args.param)
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -97,11 +98,12 @@ if __name__ == '__main__':
 	df = df.loc[df.HAS, :]
 
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
-	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
+	#df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
 	X_train = df.loc[ df.HAS,     take     ]
 	Y_train = df.loc[ df.HAS, ['DIRLABEL'] ].values.ravel()
-	Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
+	#Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
+	Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
 	
 	#Z_train = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
@@ -110,7 +112,7 @@ if __name__ == '__main__':
 	clf = Classifier(
 						categorical_features=[c in ['MOTIF'] for c in X_train.columns],
 						early_stopping=False,
-						l2_regularization= 1 / 0.01 # the l2 is inverted
+						l2_regularization = l2
 					 ).fit(
 						X_train,
 						Y_train,

@@ -91,15 +91,15 @@ def alert(args, last, curr, metrics):
 	pairs = [list(map(str, lis)) for lis in pairs] 
 	feature = Feature('CDS', curr.strand, pairs, args.locus)
 	
-	feature.tags['ribosomal_slippage'] =  metrics['DIR']
-	feature.tags['motif'] = args.locus.number_motif(metrics['MOTIF']).__name__
-	feature.tags['bases'] = metrics['BASES']
-	feature.tags['label'] = metrics['LABEL']
-	feature.tags['locus'] = args.locus.name()
-	feature.tags['location'] = metrics['LOC']
+	feature.tags['ribosomal_slippage'] =  [metrics['DIR']]
+	feature.tags['motif'] = [args.locus.number_motif(metrics['MOTIF']).__name__]
+	feature.tags['bases'] = [metrics['BASES']]
+	feature.tags['label'] = [metrics['LABEL']]
+	feature.tags['locus'] = [args.locus.name()]
+	feature.tags['location'] = [metrics['LOC']]
 	#feature.tags['translation'] = feature.translation()
 	if 'product' in last.tags or 'product' in curr.tags:
-		feature.tags['product'] = '"' + last.tags.get('product','').replace('"','') + ';' + curr.tags.get('product','').replace('"', '') + '"'
+		feature.tags['product'] = [last.tags.get('product','') , curr.tags.get('product','')]
 	if args.format == 'feature':
 		feature.write(args.outfile)
 
@@ -133,6 +133,8 @@ def has_prf(metrics):
 	#return False
 	#print(clf.classes_)
 	prob = clf.predict_proba(row.loc[:,clf.feature_names_in_])
+	#print(metrics['LABEL'], list(map(strr,prob[0])), metrics['LOC'], sep='\t')
+	#return
 	metrics['pred'] = clf.classes_[np.argmax(prob)]
 	metrics['prob'] = np.max(prob)
 	if metrics['pred'] == metrics['DIR']:
@@ -202,5 +204,8 @@ if __name__ == '__main__':
 							curr.write(args.outfile)
 							pass
 				curr = _curr
+			elif not best and not args.dump:
+				curr.write(args.outfile)
+				pass
 			last = curr
 

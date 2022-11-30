@@ -28,8 +28,10 @@ if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 from sklearn.ensemble import HistGradientBoostingClassifier
 #from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils.class_weight import compute_sample_weight
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_auc_score
 from sklearn.inspection import permutation_importance
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import f1_score
 
 #import matplotlib.pyplot as plt
 
@@ -72,10 +74,11 @@ if __name__ == '__main__':
 
 	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	#take = take + ['LF50R3', 'HK50R3']
-	#take = take + ['LF100R3', 'HK100R3']
-	take = take + ['LF'+item for item in args.param.split('_')]
-	take = take + ['HK'+item for item in args.param.split('_')]
+	take = take + ['LF50R0', 'HK50R0']
+	take = take + ['LF100R0', 'HK100R0']
+	#take = take + ['LF'+item for item in args.param.split('_')]
+	#take = take + ['HK'+item for item in args.param.split('_')]
+	l2 = float(args.param)
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -84,42 +87,59 @@ if __name__ == '__main__':
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
+	enc = OneHotEncoder(handle_unknown='ignore')
+	enc.fit(df[['DIRLABEL']])
+
 	out = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
+	out['P1'] = None
+	out['P2'] = None
+	out['P3'] = None
 
 	try:
 		os.makedirs( 'DP09/pkl/' + args.param)
+		pass
 	except:
 		pass
 
+	means = list()
 	TN = FP = FN = TP = 0
-	for column in ['CLUSTER','SUBCLUSTER','MASH95', 'GENOME']:
+	for column in ['CLUSTER','SUBCLUSTER','MASH95']: #, 'GENOME']:
 		#column = 'CLUSTER' #args.genome
 		for cluster in df[column].unique():
+			#cluster = 'A'
 			#cluster = args.param
 			inrows  = (df[column] != cluster) & df.HAS
-			outrows = (df[column] == cluster) #  & df.HAS
+			outrows = (df[column] == cluster) # & df.HAS
 			X_train = df.loc[ inrows,     take   ]
 			Y_train = df.loc[ inrows, ['DIRLABEL'] ].values.ravel()
-			Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
+			#Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
+			Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
+			#
 			X_test  = df.loc[outrows,	  take   ]
-			Y_test  = df.loc[outrows, ['DIRLABEL'] ]
-
+			Y_test  = df.loc[outrows, ['DIRLABEL'] ].values.ravel()
+			#Z_test  = df.loc[outrows, [ 'WEIGHT' ] ].values.ravel()
 			if X_test.empty and cluster:
 				continue
+			Z_test = compute_sample_weight(class_weight='balanced', y=Y_test)
 
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(
 					categorical_features=[c in ['MOTIF'] for c in X_train.columns],
 					early_stopping=False,
-					l2_regularization= 1/0.001
+					l2_regularization = l2
+				
 				).fit(
 					X_train,
 					Y_train,
 					sample_weight=Z_train
 				)
-
+			#means.append(clf.score(X_test, Y_test, Z_test))
+			#print(means)
+			#out.loc[outrows, 'P1':'P3'] = clf.predict_proba(X_test)
+			#continue
 			try:
 				os.makedirs( 'DP09/pkl/' + args.param + '/' + column)
+				pass
 			except:
 				pass
 
@@ -128,6 +148,20 @@ if __name__ == '__main__':
 			pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
 			#pickle.dump(clf, open( 'LPD3/pkl/50R3_100R3/' + column + '/' + cluster + '.pkl', 'wb')) ; exit()
 
+	#out.to_csv('pred_' + str(l2) + '.txt', sep='\t', index=False, na_rep=None) 
+	#exit()
+	'''
+	y = enc.transform(df.loc[:, ['DIRLABEL'] ]).toarray()
+	yp = out.loc[:,'P1':'P3'].to_numpy()
+	y_true = np.argmax(y, axis=-1)
+	y_pred = np.argmax(yp, axis=-1)
+	score = f1_score(y_true, y_pred, average='macro')
+	print(score)
+	'''
+	#exit()
+	#score = roc_auc_score(y, yp, multi_class='ovr', sample_weight=df.loc['WEIGHT'] )
+	#print(score)
+	#print(sum(means) / len(means))
 
 	#out.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
 	#out.to_csv(args.infile + '.'+args.param + '.tsv', sep='\t', index=False, na_rep=None) 
