@@ -78,20 +78,35 @@ class Locus(Locus, feature=Feature):
 		# gene and after the furthest upstream stop codon of the following second gene
 		# dont use curr.right because of stopcodon readthrough
 		if last.strand > 0:
-			stopL = self.last(curr.left()-1, self.stops, last.strand)
-			stopR = self.next(last.left()+2, self.stops, last.strand)
-			stopL = max(last.left()-1,  stopL - d     ) if stopL else last.left()-1
-			stopR = min(curr.right(), stopR  ) if stopR else curr.right()
+			stopL = self.last(curr.left(), self.stops, last.strand)
+			stopR = self.next(last.left(), self.stops, last.strand)
+			stopL = stopL if stopL else last.left()
+			stopR = stopR if stopR else curr.right()
+			if stopR > curr.right():
+				stopR = curr.right()
+				stopL = curr.left()
+			elif stopL < last.left():
+				stopL = last.left()
+			else:
+				stopL = stopL - d
 			stopL = stopL + 3
 			stopR = stopR + 3
 		else:
-			stopL = self.next(curr.left()-1, self.stops, last.strand)
-			stopR = self.last(last.left()+2, self.stops, last.strand)
-			#stopL = max(last.left(), stopL  ) if stopL else last.left()
-			stopR = min(curr.right(), stopR + d ) if stopR else curr.right()
+			stopL = self.next(curr.right(), self.stops, last.strand)
+			stopR = self.last(last.right(), self.stops, last.strand)
+			stopL = stopL if stopL else last.left()
+			stopR = stopR if stopR else curr.right()
+			if stopR > curr.right():
+				stopR = curr.right()
+				stopL = curr.left()
+			elif stopL < last.left():
+				#stopL = last.left()
+				print("DOHERE")
+			else:
+				stopR = stopR + d
 			stopL = stopL
 			stopR = stopR
-		#print(curr.left(), curr.right(), stopL, stopR)
+		#print(stopL, stopR)
 
 		# the seq() method is 0-based indexed
 		overlap = self.seq(stopL, stopR, curr.strand)
@@ -112,9 +127,9 @@ class Locus(Locus, feature=Feature):
 			if metrics:
 				metrics['N'] = 3 * n
 				if curr.strand > 0:
-					metrics['LOC'] = stopR - metrics['N'] - 2
+					metrics['LOC'] = stopR - metrics['N'] 
 				else:
-					metrics['LOC'] = stopL + metrics['N'] - 2
+					metrics['LOC'] = stopL + metrics['N']
 				yield metrics
 			j = j - 3
 			n += 1
