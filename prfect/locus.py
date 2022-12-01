@@ -85,7 +85,7 @@ class Locus(Locus, feature=Feature):
 			if stopR > curr.right():
 				stopR = curr.right()
 				stopL = curr.left()
-			elif stopL < last.left():
+			elif stopL <= last.left():
 				stopL = last.left()
 			else:
 				stopL = stopL - d
