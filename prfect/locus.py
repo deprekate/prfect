@@ -79,20 +79,25 @@ class Locus(Locus, feature=Feature):
 		# gene and after the furthest upstream stop codon of the following second gene
 		# dont use curr.right because of stopcodon readthrough
 		stopL = self.last(curr.left()-1, last.strand, self.stops)
-		stopL = max(last.left(), stopL + 1 - d ) if stopL else last.left()  #curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
-		stopR = min(curr.right(), stopR ) if stopR else self.length()
 		if last.strand > 0:
+			return
+			stopL = max(last.left(), stopL + 1 - d ) if stopL else last.left()
+			stopR = min(curr.right(), stopR ) if stopR else curr.right()
 			stopL = stopL + 3
 			stopR = stopR + 3
 		else:
-			stopL = stopL + d
+			stopL = max(last.left(), stopL  ) if stopL else last.left()
+			stopR = min(curr.right(), stopR ) if stopR else curr.right()
+			stopL = stopL + 1 
 			stopR = stopR + d
+		print(curr.right(), stopR)
+		print(stopL, stopR)
 
 		# the seq() method is 0-based indexed
 		overlap = self.seq(stopL-1, stopR, curr.strand)
 		if not overlap: return
-		#print(stopL, stopR, overlap, sep='\t')
+		print(stopL, stopR, overlap, d, sep='\t')
 		assert not len(overlap) % 3, "overlap error"
 
 		# this is to pad the ends of the above maximum possible region with flanking sequence
