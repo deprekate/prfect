@@ -192,7 +192,7 @@ if __name__ == '__main__':
 							if loc-10 < metrics['LOC'] < loc+10: 
 								metrics['LABEL'] = 1
 							else:
-								metrics['LABEL'] = -1
+								metrics['LABEL'] = 0 # -1
 							if args.dump:
 								dump(args, _last, _curr, metrics)
 							elif has_prf(metrics):

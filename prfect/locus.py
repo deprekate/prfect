@@ -73,17 +73,27 @@ class Locus(Locus, feature=Feature):
 		d = (curr.left() - last.left() + 1) % 3  - 1
 		if not d: return
 
+		# this is all 1-based indexing
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene
 		# dont use curr.right because of stopcodon readthrough
 		stopL = self.last(curr.left()-1, last.strand, self.stops)
-		stopL = stopL + 1 if stopL else curr.frame('left') - 1
+		stopL = max(last.left(), stopL + 1 - d ) if stopL else last.left()  #curr.frame('left') - 1
 		stopR = self.next(last.left()+2, last.strand, self.stops)
-		stopR = min(curr.right()-3, stopR) + 3 if stopR else self.length()
+		stopR = min(curr.right(), stopR ) if stopR else self.length()
+		if last.strand > 0:
+			stopL = stopL + 3
+			stopR = stopR + 3
+		else:
+			stopL = stopL + d
+			stopR = stopR + d
 
-		overlap = self.seq(stopL, stopR, curr.strand)
+		# the seq() method is 0-based indexed
+		overlap = self.seq(stopL-1, stopR, curr.strand)
 		if not overlap: return
+		#print(stopL, stopR, overlap, sep='\t')
+		assert not len(overlap) % 3, "overlap error"
 
 		# this is to pad the ends of the above maximum possible region with flanking sequence
 		# in order to look for the secondary structure within it
@@ -155,7 +165,7 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [50] #, 100] #30,40,50,60,80,90,100,120]
+			window = [50, 100] #30,40,50,60,80,90,100,120]
 			offset = [0] #,3,6]
 		for w in window:
 			for o in offset:
