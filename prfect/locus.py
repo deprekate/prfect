@@ -94,19 +94,19 @@ class Locus(Locus, feature=Feature):
 		else:
 			stopL = self.next(curr.right(), self.stops, last.strand)
 			stopR = self.last(last.right(), self.stops, last.strand)
+			#print(stopL, stopR)
 			stopL = stopL if stopL else last.left()
 			stopR = stopR if stopR else curr.right()
-			if stopR > curr.right():
+			if stopR >= curr.right():
 				stopR = curr.right()
 				stopL = curr.left()
-			elif stopL < last.left():
+			elif stopL <= last.left():
 				#stopL = last.left()
 				print("DOHERE")
 			else:
 				stopR = stopR + d
 			stopL = stopL
 			stopR = stopR
-		#print(stopL, stopR)
 
 		# the seq() method is 0-based indexed
 		overlap = self.seq(stopL, stopR, curr.strand)
