@@ -74,11 +74,11 @@ if __name__ == '__main__':
 
 	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	take = take + ['LF50R0', 'HK50R0']
-	take = take + ['LF100R0', 'HK100R0']
+	take = take + ['LF50R3', 'HK50R3']
+	take = take + ['LF100R3', 'HK100R3']
 	#take = take + ['LF'+item for item in args.param.split('_')]
 	#take = take + ['HK'+item for item in args.param.split('_')]
-	l2 = float(args.param)
+	l2 = 10 #float(args.param)
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -96,14 +96,14 @@ if __name__ == '__main__':
 	out['P3'] = None
 
 	try:
-		os.makedirs( 'DP09/pkl/' + args.param)
+		#os.makedirs( 'DP09/pkl/' + args.param)
 		pass
 	except:
 		pass
 
 	means = list()
 	TN = FP = FN = TP = 0
-	for column in ['CLUSTER','SUBCLUSTER','MASH95']: #, 'GENOME']:
+	for column in ['GENOME']: #,'SUBCLUSTER','MASH95', 'GENOME']:
 		#column = 'CLUSTER' #args.genome
 		for cluster in df[column].unique():
 			#cluster = 'A'
@@ -135,8 +135,8 @@ if __name__ == '__main__':
 				)
 			#means.append(clf.score(X_test, Y_test, Z_test))
 			#print(means)
-			#out.loc[outrows, 'P1':'P3'] = clf.predict_proba(X_test)
-			#continue
+			#out.loc[outrows, 'P1':'P3'] = clf.predict_proba(X_test) ; continue
+
 			try:
 				os.makedirs( 'DP09/pkl/' + args.param + '/' + column)
 				pass
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 			pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
 			#pickle.dump(clf, open( 'LPD3/pkl/50R3_100R3/' + column + '/' + cluster + '.pkl', 'wb')) ; exit()
 
-	#out.to_csv('pred_' + str(l2) + '.txt', sep='\t', index=False, na_rep=None) 
+	#out.to_csv('lars/' + column + '/pred_' + str(l2) + '.txt', sep='\t', index=False, na_rep=None) 
 	#exit()
 	'''
 	y = enc.transform(df.loc[:, ['DIRLABEL'] ]).toarray()

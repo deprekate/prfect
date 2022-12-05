@@ -125,12 +125,6 @@ def _print(self, item):
 def has_prf(metrics):
 	global clf
 	row = pd.DataFrame.from_dict(metrics,orient='index').T
-	#bst = xgb.Booster({'nthread': 4})  # init model
-	#bst.load_model('0001.model')  # load data
-	#dtest = xgb.DMatrix(row.loc[:,clf.feature_names_in_].values, enable_categorical=True)
-	#ypred = bst.predict(dtest, iteration_range=(0, bst.best_iteration + 1))
-	#print(ypred)
-	#return False
 	#print(clf.classes_)
 	prob = clf.predict_proba(row.loc[:,clf.feature_names_in_])
 	#print(metrics['LABEL'], list(map(strr,prob[0])), metrics['LOC'], sep='\t')
@@ -189,7 +183,7 @@ if __name__ == '__main__':
 						for metrics in locus.get_metrics(_last, _curr):
 							loc = (_last.right() + _curr.left()) // 2
 							# the location of the slippery site has to be within 10bp of annotation
-							if loc-10 < metrics['LOC'] < loc+10: 
+							if loc-10 < metrics['LOC']-3 < loc+10: 
 								metrics['LABEL'] = 1
 							else:
 								metrics['LABEL'] = 0 # -1
