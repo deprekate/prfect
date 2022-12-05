@@ -162,6 +162,8 @@ if __name__ == '__main__':
 		locus.args = args
 		last = curr = _last = _curr = None
 		for curr in sorted(locus.features(include='CDS')):
+			if len(curr.pairs) > 3:
+				continue
 			best = dict()
 			if last and last.strand == curr.strand:
 				for metrics in locus.get_metrics(last, curr):

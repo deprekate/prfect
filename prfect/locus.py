@@ -80,11 +80,11 @@ class Locus(Locus, feature=Feature):
 		if last.strand > 0:
 			stopL = self.last(curr.left(), self.stops, last.strand)
 			stopR = self.next(last.left(), self.stops, last.strand)
-			stopL = stopL if stopL else last.left()
+			stopL = stopL if stopL else last.left() - d
 			stopR = stopR if stopR else curr.right()
-			if stopR > curr.right():
+			if stopR >= curr.right():
 				stopR = curr.right()
-				stopL = curr.left()
+				#stopL = curr.left()
 			elif stopL <= last.left():
 				stopL = last.left()
 			else:
@@ -94,15 +94,14 @@ class Locus(Locus, feature=Feature):
 		else:
 			stopL = self.next(curr.right(), self.stops, last.strand)
 			stopR = self.last(last.right(), self.stops, last.strand)
-			#print(stopL, stopR)
 			stopL = stopL if stopL else last.left()
 			stopR = stopR if stopR else curr.right()
 			if stopR >= curr.right():
-				stopR = curr.right()
 				stopL = curr.left()
+				#stopR = curr.right()
 			elif stopL <= last.left():
 				#stopL = last.left()
-				print("DOHERE")
+				exit()
 			else:
 				stopR = stopR + d
 			stopL = stopL
@@ -112,7 +111,7 @@ class Locus(Locus, feature=Feature):
 		overlap = self.seq(stopL, stopR, curr.strand)
 		if not overlap: return
 		#print(stopL, stopR, overlap, d, sep='\t')
-		assert not len(overlap) % 3, "overlap error"
+		#assert not len(overlap) % 3, "overlap error"
 
 		# this is to pad the ends of the above maximum possible region with flanking sequence
 		# in order to look for the secondary structure within it
