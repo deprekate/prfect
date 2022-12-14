@@ -74,8 +74,8 @@ if __name__ == '__main__':
 
 	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	take = take + ['LF50R3', 'HK50R3']
-	take = take + ['LF100R3', 'HK100R3']
+	take = take + ['LF50R0', 'HK50R0']
+	take = take + ['LF100R0', 'HK100R0']
 	#take = take + ['LF'+item for item in args.param.split('_')]
 	#take = take + ['HK'+item for item in args.param.split('_')]
 	l2 = 10 #float(args.param)
@@ -112,15 +112,15 @@ if __name__ == '__main__':
 			outrows = (df[column] == cluster) # & df.HAS
 			X_train = df.loc[ inrows,     take   ]
 			Y_train = df.loc[ inrows, ['DIRLABEL'] ].values.ravel()
-			#Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
-			Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
+			Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
+			#Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
 			#
 			X_test  = df.loc[outrows,	  take   ]
 			Y_test  = df.loc[outrows, ['DIRLABEL'] ].values.ravel()
 			#Z_test  = df.loc[outrows, [ 'WEIGHT' ] ].values.ravel()
 			if X_test.empty and cluster:
 				continue
-			Z_test = compute_sample_weight(class_weight='balanced', y=Y_test)
+			#Z_test = compute_sample_weight(class_weight='balanced', y=Y_test)
 
 			Classifier = HistGradientBoostingClassifier
 			clf = Classifier(

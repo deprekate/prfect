@@ -83,12 +83,13 @@ class Locus(Locus, feature=Feature):
 			stopL = stopL if stopL else last.left() - d
 			stopR = stopR if stopR else curr.right()
 			if stopR >= curr.right():
-				stopR = curr.right()
+				# this has to include the d
+				stopR = curr.right() - d
 				#stopL = curr.left()
 			elif stopL <= last.left():
 				stopL = last.left()
-			else:
-				stopL = stopL - d
+			#else:
+			#	stopL = stopL - d
 			stopL = stopL + 3
 			stopR = stopR + 3
 		else:
@@ -97,13 +98,12 @@ class Locus(Locus, feature=Feature):
 			stopL = stopL if stopL else last.left()
 			stopR = stopR if stopR else curr.right()
 			if stopR >= curr.right():
-				stopL = curr.left()
-				#stopR = curr.right()
+				stopR = curr.right()
+				#stopL = curr.left()
 			elif stopL <= last.left():
-				#stopL = last.left()
-				exit()
-			else:
-				stopR = stopR + d
+				stopL = last.left()
+			#else:
+			#	stopR = stopR + d
 			stopL = stopL
 			stopR = stopR
 
@@ -168,7 +168,7 @@ class Locus(Locus, feature=Feature):
 			metrics['MOTIF'] = self.motif_number(mot)
 			#metrics['PROB'] = prob
 		# FORWARD
-		elif d > 0 and self.has_forward_motif(e0+p0+a0) and (self.codon_rarity(a1)/self.codon_rarity(a0) > 1):
+		elif d > 0 and self.has_forward_motif(e0+p0+a0) and self.codon_rarity(a1) >= self.codon_rarity(a0):
 			mot,prob = self.has_forward_motif(e0+p0+a0)
 			metrics['MOTIF'] = self.motif_number(mot)
 			#metrics['PROB'] = prob
@@ -183,8 +183,8 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [30,40,50,60,80,90,100,120]
-			offset = [0,3,6]
+			window = [50,100] #[30,40,50,60,80,90,100,120]
+			offset = [0] #[0,3, 6]
 		for w in window:
 			for o in offset:
 				# LEFT

@@ -22,7 +22,6 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
@@ -86,24 +85,24 @@ if __name__ == '__main__':
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	take = take + ['LF50R3', 'HK50R3']
-	take = take + ['LF100R3', 'HK100R3']
-	#take = take + ['LF'+item for item in args.param.split('_')]
-	#take = take + ['HK'+item for item in args.param.split('_')]
-	l2 = float(args.param)
+	#take = take + ['LF50R3', 'HK50R3']
+	#take = take + ['LF100R3', 'HK100R3']
+	take = take + ['LF'+item for item in args.param.split('_')]
+	take = take + ['HK'+item for item in args.param.split('_')]
+	l2 = 10 #float(args.param)
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
 	df = df.merge(has, left_on='GENOME', right_index=True)
-	df = df.loc[df.HAS, :]
+	#df = df.loc[df.HAS, :]
 
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
-	#df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
+	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
 	X_train = df.loc[ df.HAS,     take     ]
 	Y_train = df.loc[ df.HAS, ['DIRLABEL'] ].values.ravel()
-	#Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
-	Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
+	Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
+	#Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
 	
 	#Z_train = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 

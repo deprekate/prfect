@@ -70,7 +70,7 @@ def fix_pairs(tup):
 
 def strr(x):
     if isinstance(x, float):
-        return str(round(x,5))
+        return str(round(x,6))
     else:
         return str(x)
 
@@ -81,13 +81,11 @@ def is_valid_file(x):
 
 
 def alert(args, last, curr, metrics):
-	# this is to set only frameshifts that occur within 10bp
-	#if label and 10 > ((last.right() + curr.left()) / 2 - metrics['LOC']):
-
-	pairs = [[last.left(), last.right()], [curr.left(), curr.right()]]
+	#pairs = [[last.left()+1, last.right()+1], [curr.left()+1, curr.right()+1]]
+	pairs = [list(last.pairs[-1]), list(curr.pairs[0])]
 	if last.strand > 0:
-		pairs[0][-1] = metrics['LOC'] + 2
-		pairs[-1][0] = metrics['LOC'] + 3 + metrics['DIR']
+		pairs[0][-1] = metrics['LOC']
+		pairs[-1][0] = metrics['LOC'] + 1 + metrics['DIR']
 	pairs = [list(map(str, lis)) for lis in pairs] 
 	feature = Feature('CDS', curr.strand, pairs, args.locus)
 	
@@ -162,10 +160,9 @@ if __name__ == '__main__':
 		locus.args = args
 		last = curr = _last = _curr = None
 		for curr in sorted(locus.features(include='CDS')):
-			if len(curr.pairs) > 3:
-				continue
 			best = dict()
 			if last and last.strand == curr.strand:
+				#if False:
 				for metrics in locus.get_metrics(last, curr):
 					if args.dump:
 						dump(args, last, curr, metrics)
@@ -174,6 +171,7 @@ if __name__ == '__main__':
 							best = metrics
 				if best:
 					alert(args, last, curr, best)
+					pass
 			if curr.is_joined():
 				for pairs in pairwise(curr.pairs):
 					best = dict()
