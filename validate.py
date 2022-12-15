@@ -78,7 +78,7 @@ if __name__ == '__main__':
 	take = take + ['LF100R0', 'HK100R0']
 	#take = take + ['LF'+item for item in args.param.split('_')]
 	#take = take + ['HK'+item for item in args.param.split('_')]
-	l2 = 10 #float(args.param)
+	l2 = 1 #float(args.param)
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 		#column = 'CLUSTER' #args.genome
 		for cluster in df[column].unique():
 			#cluster = 'A'
-			#cluster = args.param
+			cluster = args.param
 			inrows  = (df[column] != cluster) & df.HAS
 			outrows = (df[column] == cluster) # & df.HAS
 			X_train = df.loc[ inrows,     take   ]
@@ -145,8 +145,8 @@ if __name__ == '__main__':
 
 			#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.' + column + '_' + cluster + '.pkl', 'wb'))
 			#pickle.dump(clf, open( 'pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
-			pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
-			#pickle.dump(clf, open( 'LPD3/pkl/50R3_100R3/' + column + '/' + cluster + '.pkl', 'wb')) ; exit()
+			#pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
+			pickle.dump(clf, open( 'GENOME/' + cluster + '.pkl', 'wb')) ; exit()
 
 	#out.to_csv('lars/' + column + '/pred_' + str(l2) + '.txt', sep='\t', index=False, na_rep=None) 
 	#exit()

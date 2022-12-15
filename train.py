@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	#take = take + ['LF100R3', 'HK100R3']
 	take = take + ['LF'+item for item in args.param.split('_')]
 	take = take + ['HK'+item for item in args.param.split('_')]
-	l2 = 10 #float(args.param)
+	l2 = 1 #float(args.param)
 
 	# this is to find genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')

@@ -97,7 +97,7 @@ def alert(args, last, curr, metrics):
 	feature.tags['location'] = [metrics['LOC']]
 	#feature.tags['translation'] = feature.translation()
 	if 'product' in last.tags or 'product' in curr.tags:
-		feature.tags['product'] = [last.tags.get('product','') , curr.tags.get('product','')]
+		feature.tags['product'] = last.tags.get('product','') + curr.tags.get('product','')
 	if args.format == 'feature':
 		feature.write(args.outfile)
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
 							pass
 				curr = _curr
 			elif not best and not args.dump:
-				curr.write(args.outfile)
+				#curr.write(args.outfile)
 				pass
 			last = curr
 

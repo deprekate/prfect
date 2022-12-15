@@ -145,7 +145,7 @@ class Locus(Locus, feature=Feature):
 		a1 = seq[ j+0+d : j+3+d  ]
 		# metrics
 		#metrics['GC']   = self.gc_content()
-		metrics['BASES'] = e1+p1+a1
+		metrics['BASES'] = e0+p0+a0
 		metrics['LOC']   = None
 		metrics['LABEL'] = 0
 		metrics['N']     = None
@@ -183,8 +183,8 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [50,100] #[30,40,50,60,80,90,100,120]
-			offset = [0] #[0,3, 6]
+			window = [30,40,50,60,80,90,100,120]
+			offset = [0,3,6,9,12,15]
 		for w in window:
 			for o in offset:
 				# LEFT
