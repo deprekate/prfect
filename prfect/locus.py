@@ -116,9 +116,11 @@ class Locus(Locus, feature=Feature):
 		# this is to pad the ends of the above maximum possible region with flanking sequence
 		# in order to look for the secondary structure within it
 		# there has to be a better way to do this, it may cause errors with repeated sequence
+		# or short!!!!!!
 		seq = self.seq(stopL-150, stopR+150, curr.strand)
 		i = seq.find(overlap)
-		j = i + len(overlap)  - 3
+		#j = i + len(overlap)  - 3
+		j = len(self.seq(stopL-150, stopL, curr.strand)) if curr.strand > 0 else len(self.seq(stopR, stopR+150, curr.strand))
 		# check for slippery sequences
 		n = 1
 		while j > i:
@@ -183,8 +185,8 @@ class Locus(Locus, feature=Feature):
 			window = list(map(int, [i for item in self.args.param.split('_') for i in item.split('R')][::2]))
 			offset = list(map(int, [self.args.param.split('R')[-1]]))
 		else:
-			window = [30,40,50,60,80,90,100,120]
-			offset = [0,3,6,9,12,15]
+			window = [50,100] #30,40,50,60,80,90,100,120]
+			offset = [0]      #0,3,6,9,12,15]
 		for w in window:
 			for o in offset:
 				# LEFT
