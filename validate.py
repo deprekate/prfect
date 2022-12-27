@@ -74,11 +74,11 @@ if __name__ == '__main__':
 
 	#take = ['GC', 'N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
 	take = ['N','DIR', 'RBS1','RBS2', 'MOTIF', 'A0', 'A1']
-	take = take + ['LF50R0', 'HK50R0']
-	take = take + ['LF100R0', 'HK100R0']
+	take = take + ['LF50R3', 'HK50R3']
+	take = take + ['LF100R3', 'HK100R3']
 	#take = take + ['LF'+item for item in args.param.split('_')]
 	#take = take + ['HK'+item for item in args.param.split('_')]
-	l2 = 1 #float(args.param)
+	l2 = float(args.param)
 
 	# this is to drop genomes that do not have a chaperone annotated
 	has = df.groupby(['GENOME'])['LABEL'].any().to_frame('HAS')
@@ -87,19 +87,22 @@ if __name__ == '__main__':
 	df['DIRLABEL'] = df['DIR'] * df['LABEL']
 	df['WEIGHT'] = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
+	out = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
+	out['P1'] = 0
+	out['P2'] = 0
+	out['P3'] = 0
+
 	enc = OneHotEncoder(handle_unknown='ignore')
 	enc.fit(df[['DIRLABEL']])
 
-	out = df.loc[:,['GENOME','LOC','LABEL','N', 'DIR', 'HAS','MOTIF'] ]
-	out['P1'] = None
-	out['P2'] = None
-	out['P3'] = None
-
 	try:
-		#os.makedirs( 'DP09/pkl/' + args.param)
+		os.makedirs( 'DP09/pkl/' + args.param)
 		pass
 	except:
 		pass
+
+	#clu = args.param
+	#args.param = '50R3_100R3'
 
 	means = list()
 	TN = FP = FN = TP = 0
@@ -107,13 +110,13 @@ if __name__ == '__main__':
 		#column = 'CLUSTER' #args.genome
 		for cluster in df[column].unique():
 			#cluster = 'A'
-			cluster = args.param
+			#cluster = clu
 			inrows  = (df[column] != cluster) & df.HAS
 			outrows = (df[column] == cluster) # & df.HAS
 			X_train = df.loc[ inrows,     take   ]
 			Y_train = df.loc[ inrows, ['DIRLABEL'] ].values.ravel()
-			Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
-			#Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
+			#Z_train = df.loc[ inrows, [ 'WEIGHT' ] ].values.ravel()
+			Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
 			#
 			X_test  = df.loc[outrows,	  take   ]
 			Y_test  = df.loc[outrows, ['DIRLABEL'] ].values.ravel()
@@ -135,7 +138,7 @@ if __name__ == '__main__':
 				)
 			#means.append(clf.score(X_test, Y_test, Z_test))
 			#print(means)
-			#out.loc[outrows, 'P1':'P3'] = clf.predict_proba(X_test) ; continue
+			out.loc[outrows, 'P1':'P3'] = clf.predict_proba(X_test) ; continue
 
 			try:
 				os.makedirs( 'DP09/pkl/' + args.param + '/' + column)
@@ -145,11 +148,10 @@ if __name__ == '__main__':
 
 			#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.' + column + '_' + cluster + '.pkl', 'wb'))
 			#pickle.dump(clf, open( 'pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
-			#pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
-			pickle.dump(clf, open( 'GENOME/' + cluster + '.pkl', 'wb')) ; exit()
+			pickle.dump(clf, open( 'DP09/pkl/' + args.param + '/' + column + '/' + cluster + '.pkl', 'wb'))
+			exit()
+			#pickle.dump(clf, open( 'GENOME/' + cluster + '.pkl', 'wb')) ; exit()
 
-	#out.to_csv('lars/' + column + '/pred_' + str(l2) + '.txt', sep='\t', index=False, na_rep=None) 
-	#exit()
 	'''
 	y = enc.transform(df.loc[:, ['DIRLABEL'] ]).toarray()
 	yp = out.loc[:,'P1':'P3'].to_numpy()
@@ -157,11 +159,15 @@ if __name__ == '__main__':
 	y_pred = np.argmax(yp, axis=-1)
 	score = f1_score(y_true, y_pred, average='macro')
 	print(score)
-	'''
 	#exit()
+	'''
 	#score = roc_auc_score(y, yp, multi_class='ovr', sample_weight=df.loc['WEIGHT'] )
 	#print(score)
 	#print(sum(means) / len(means))
 
 	#out.to_csv('pred.tsv', sep='\t', index=False, na_rep=None) 
-	#out.to_csv(args.infile + '.'+args.param + '.tsv', sep='\t', index=False, na_rep=None) 
+	out.to_csv(column + '.'+args.param + '.tsv', sep='\t', index=False, na_rep=None) 
+
+
+
+

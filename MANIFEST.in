@@ -1,0 +1,4 @@
+include *.md LICENSE VERSION
+include test/*.gbk
+include prfect/*.pkl
+recursive-include src *.c

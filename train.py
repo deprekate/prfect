@@ -101,10 +101,9 @@ if __name__ == '__main__':
 
 	X_train = df.loc[ df.HAS,     take     ]
 	Y_train = df.loc[ df.HAS, ['DIRLABEL'] ].values.ravel()
-	Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
-	#Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
+	#Z_train = df.loc[ df.HAS,  ['WEIGHT']  ].values.ravel()
+	Z_train = compute_sample_weight(class_weight='balanced', y=Y_train)
 	
-	#Z_train = compute_sample_weight(class_weight='balanced', y=df.DIRLABEL)
 
 	#X_train.to_csv('old', index=False, sep='\t') ; exit()
 	Classifier = HistGradientBoostingClassifier

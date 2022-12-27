@@ -89,12 +89,13 @@ def alert(args, last, curr, metrics):
 	pairs = [list(map(str, lis)) for lis in pairs] 
 	feature = Feature('CDS', curr.strand, pairs, args.locus)
 	
-	feature.tags['ribosomal_slippage'] =  [metrics['DIR']]
+	feature.tags['ribosomal_slippage'] = [None]
+	feature.tags['direction'] =  [metrics['DIR']]
 	feature.tags['motif'] = [args.locus.number_motif(metrics['MOTIF']).__name__]
 	feature.tags['bases'] = [metrics['BASES']]
 	feature.tags['label'] = [metrics['LABEL']]
 	feature.tags['locus'] = [args.locus.name()]
-	feature.tags['location'] = [metrics['LOC']]
+	#feature.tags['location'] = [metrics['LOC']]
 	#feature.tags['translation'] = feature.translation()
 	if 'product' in last.tags or 'product' in curr.tags:
 		feature.tags['product'] = last.tags.get('product',[]) + curr.tags.get('product',[])
@@ -154,10 +155,10 @@ if __name__ == '__main__':
 
 	genbank = File(args.infile)
 	for name,locus in genbank.items():
-		if not args.dump:
-			args.outfile.print('LOCUS       ')
-			args.outfile.print(locus.groups['LOCUS'][0])
-			args.outfile.print('FEATURES\n')
+		#if not args.dump:
+		#	args.outfile.print('LOCUS       ')
+		#	args.outfile.print(locus.groups['LOCUS'][0])
+		#	args.outfile.print('FEATURES\n')
 		#for codon,rarity in locus.codon_rarity().items():print(codon, rarity, sep='\t')
 		locus.init(args)
 		args.locus = locus
@@ -190,7 +191,7 @@ if __name__ == '__main__':
 							if loc-10 < metrics['LOC']-3 < loc+10: 
 								metrics['LABEL'] = 1
 							else:
-								metrics['LABEL'] = 0 # -1
+								metrics['LABEL'] = -1
 							if args.dump:
 								dump(args, _last, _curr, metrics)
 							elif has_prf(metrics):
@@ -203,9 +204,10 @@ if __name__ == '__main__':
 							pass
 				curr = _curr
 			elif not best and not args.dump:
-				curr.write(args.outfile)
+				#curr.write(args.outfile)
 				pass
 			last = curr
 		if not args.dump:
-			args.outfile.print('//\n')
+			#args.outfile.print('//\n')
+			pass
 
