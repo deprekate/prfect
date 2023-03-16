@@ -30,7 +30,7 @@ def readme():
 	return long_desc
 
 def get_version():
-	with open("VERSION", 'r') as f:
+	with open("VERSION.md", 'r') as f:
 		v = f.readline().strip()
 		return v
 
