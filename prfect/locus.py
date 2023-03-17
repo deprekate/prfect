@@ -1,20 +1,10 @@
 import os
 import sys
 from itertools import zip_longest, chain, tee, islice
-from termcolor import colored
-from math import log10, exp, sqrt
-import pickle
-import pkgutil
-import pkg_resources
-from math import log
-
 from genbank.locus import Locus
 from prfect.feature import Feature
 from prfect.functions import *
 import score_rbs
-
-import numpy as np
-import pandas as pd
 
 import LinearFold as lf
 from hotknots import hotknots as hk
