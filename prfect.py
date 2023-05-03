@@ -5,9 +5,9 @@ import os
 import sys
 import argparse
 from argparse import RawTextHelpFormatter
-from subprocess import Popen, PIPE, STDOUT
-from types import MethodType
-from termcolor import colored
+#from subprocess import Popen, PIPE, STDOUT
+#from types import MethodType
+#from termcolor import colored
 from itertools import tee, chain
 import pickle
 import pkgutil
@@ -18,6 +18,7 @@ sys.path.pop(0)
 
 from genbank.feature import Feature
 from prfect.file import File
+
 os.environ["OMP_NUM_THREADS"] = "1" # export OMP_NUM_THREADS=4
 os.environ["OPENBLAS_NUM_THREADS"] = "1" # export OPENBLAS_NUM_THREADS=4
 os.environ["MKL_NUM_THREADS"] = "1" # export MKL_NUM_THREADS=6
