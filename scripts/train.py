@@ -21,7 +21,7 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1" # export VECLIB_MAXIMUM_THREADS=4
 os.environ["NUMEXPR_NUM_THREADS"] = "1" # export NUMEXPR_NUM_THREADS=6
 import numpy as np
 import pandas as pd
-import xgboost as xgb
+#import xgboost as xgb
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
@@ -85,10 +85,10 @@ if __name__ == '__main__':
 	#df.loc[df.SUBCLUSTER=='None', 'SUBCLUSTER'] =  df.loc[df.SUBCLUSTER=='None', 'CLUSTER'] + '0'
 
 	take = ['DIR', 'N', 'RBS1','RBS2', 'A0', 'A1', 'MOTIF']
-	#take = take + ['LF50R3', 'HK50R3']
-	#take = take + ['LF100R3', 'HK100R3']
-	take = take + ['LF'+item for item in args.param.split('_')]
-	take = take + ['HK'+item for item in args.param.split('_')]
+	take = take + ['LF50R3', 'HK50R3']
+	take = take + ['LF100R3', 'HK100R3']
+	#take = take + ['LF'+item for item in args.param.split('_')]
+	#take = take + ['HK'+item for item in args.param.split('_')]
 	l2 = 1 #float(args.param)
 
 	# this is to find genomes that do not have a chaperone annotated
@@ -120,16 +120,17 @@ if __name__ == '__main__':
 	# this is to be backwards compatible
 	if not hasattr(clf,'feature_names_in_'):
 		clf.feature_names_in_ = take
-			
+
+	'''
 	try:
 		os.makedirs( 'DP09/pkl/' + args.param )
 		pass
 	except:
 		pass
-
-	pickle.dump(clf, open('DP09/pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
+	'''
+	#pickle.dump(clf, open('DP09/pkl/' + args.param + '/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open('DP9/pkl/50R0_100R0/all.pkl', 'wb')) ; exit()
 	#pickle.dump(clf, open(args.infile.split('.')[0] + '.' + args.param + '.pkl', 'wb')) ; exit()
-	#pickle.dump(clf, open('cl.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
+	pickle.dump(clf, open('clf.' + sklearn.__version__ + '.pkl', 'wb')) ; exit()
 	
 
