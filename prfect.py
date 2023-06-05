@@ -31,6 +31,10 @@ import numpy as np
 #import xgboost as xgb
 
 # sklearn and model persisitence is iffy
+def warn(*args, **kwargs):
+    pass
+warnings.warn = warn
+warnings.filterwarnings("ignore")
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
@@ -165,7 +169,7 @@ if __name__ == '__main__':
 		clf = pickle.load(open(path, 'rb'))
 
 	genbank = File(args.infile)
-	for name,locus in genbank.items():
+	for locus in genbank:
 		#if not args.dump:
 		#	args.outfile.print('LOCUS       ')
 		#	args.outfile.print(locus.groups['LOCUS'][0])
