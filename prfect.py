@@ -13,6 +13,8 @@ import pickle
 import pkgutil
 import pkg_resources
 from packaging import version
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 sys.path.pop(0)
 
@@ -53,14 +55,20 @@ def rint(s):
 
 def fix_pairs(tup):
 	pairs = [list(item) if item != ('1',) else ['1','1'] for item in tup]
-	if '<' in pairs[0][0]:
-			pairs[0][0] = rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1
-	if '>' in pairs[0][1]:
-			pairs[0][1] = rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2
-	if '<' in pairs[1][0]:
-			pairs[1][0] = rint(pairs[1][0]) // 3 * 3 + rint(pairs[1][1]) % 3 + 1
-	if '>' in pairs[1][1]:
-			pairs[1][1] = rint(pairs[1][1]) // 3 * 3 + rint(pairs[1][0]) % 3 + 2
+	#if '<' in pairs[0][0]:
+	#		pairs[0][0] = rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1
+	#if '>' in pairs[0][1]:
+	#		pairs[0][1] = rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2
+	#if '<' in pairs[1][0]:
+	#		pairs[1][0] = rint(pairs[1][0]) // 3 * 3 + rint(pairs[1][1]) % 3 + 1
+	#if '>' in pairs[1][1]:
+	#		pairs[1][1] = rint(pairs[1][1]) // 3 * 3 + rint(pairs[1][0]) % 3 + 2
+	for i in range(2):
+		if '<' in pairs[i][0]:
+			pairs[i][0] = rint(pairs[i][0]) // 3 * 3 + rint(pairs[i][1]) % 3 + 1
+		if '>' in pairs[i][1]:
+			pairs[i][1] = rint(pairs[i][1]) // 3 * 3 + rint(pairs[i][0]) % 3 + 2
+
 	pairs = [list(map(int,item)) for item in pairs]
 	# this is to fix features that have incorrect locations by using the frame of the other end
 	if pairs[0][0] % 3 != (pairs[0][1]-2) % 3:
