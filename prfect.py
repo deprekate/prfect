@@ -64,9 +64,6 @@ def fix_pairs(tup):
 	pairs = [list(map(int,item)) for item in pairs]
 	# this is to fix features that have incorrect locations by using the frame of the other end
 	if pairs[0][0] % 3 != (pairs[0][1]-2) % 3:
-		print("feature has bad location:")
-		print(tup)
-		exit()
 		pairs[0][1] = pairs[0][1] // 3 * 3 + ((pairs[0][0])-1) % 3
 	if pairs[1][0] % 3 != (pairs[1][1]-2) % 3:
 		pairs[1][0] = pairs[1][0] // 3 * 3 + ((pairs[1][1])-2) % 3
