@@ -4,7 +4,6 @@ signal(SIGPIPE,SIG_DFL)
 import os
 import sys
 import argparse
-from argparse import RawTextHelpFormatter
 #from subprocess import Popen, PIPE, STDOUT
 #from types import MethodType
 #from termcolor import colored
@@ -14,7 +13,8 @@ import pkgutil
 import pkg_resources
 from packaging import version
 import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore")
+#warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 sys.path.pop(0)
 
@@ -31,10 +31,6 @@ import numpy as np
 #import xgboost as xgb
 
 # sklearn and model persisitence is iffy
-def warn(*args, **kwargs):
-    pass
-warnings.warn = warn
-warnings.filterwarnings("ignore")
 import sklearn
 if version.parse(sklearn.__version__) < version.parse('1.0.0'):
 	from sklearn.experimental import enable_hist_gradient_boosting
@@ -59,14 +55,6 @@ def rint(s):
 
 def fix_pairs(tup):
 	pairs = [list(item) if item != ('1',) else ['1','1'] for item in tup]
-	#if '<' in pairs[0][0]:
-	#		pairs[0][0] = rint(pairs[0][0]) // 3 * 3 + rint(pairs[0][1]) % 3 + 1
-	#if '>' in pairs[0][1]:
-	#		pairs[0][1] = rint(pairs[0][1]) // 3 * 3 + rint(pairs[0][0]) % 3 + 2
-	#if '<' in pairs[1][0]:
-	#		pairs[1][0] = rint(pairs[1][0]) // 3 * 3 + rint(pairs[1][1]) % 3 + 1
-	#if '>' in pairs[1][1]:
-	#		pairs[1][1] = rint(pairs[1][1]) // 3 * 3 + rint(pairs[1][0]) % 3 + 2
 	for i in range(2):
 		if '<' in pairs[i][0]:
 			pairs[i][0] = rint(pairs[i][0]) // 3 * 3 + rint(pairs[i][1]) % 3 + 1
@@ -76,6 +64,7 @@ def fix_pairs(tup):
 	pairs = [list(map(int,item)) for item in pairs]
 	# this is to fix features that have incorrect locations by using the frame of the other end
 	if pairs[0][0] % 3 != (pairs[0][1]-2) % 3:
+		print("feature has bad location:")
 		print(tup)
 		exit()
 		pairs[0][1] = pairs[0][1] // 3 * 3 + ((pairs[0][0])-1) % 3
@@ -139,10 +128,7 @@ def _print(self, item):
 def has_prf(metrics):
 	global clf
 	row = pd.DataFrame.from_dict(metrics,orient='index').T
-	#print(clf.classes_)
 	prob = clf.predict_proba(row.loc[:,clf.feature_names_in_])
-	#print(metrics['LABEL'], list(map(strr,prob[0])), metrics['LOC'], sep='\t')
-	#return
 	metrics['pred'] = clf.classes_[np.argmax(prob)]
 	metrics['prob'] = np.max(prob)
 	if metrics['pred'] == metrics['DIR']:
@@ -151,11 +137,10 @@ def has_prf(metrics):
 
 if __name__ == '__main__':
 	usage = '%s [-opt1, [-opt2, ...]] infile' % __file__
-	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
+	parser = argparse.ArgumentParser(description='', formatter_class=argparse.RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	parser.add_argument('-d', '--dump', action="store_true")
-	parser.add_argument('-p', '--param', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('-m', '--model', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('-f', '--format', help='Output the features in the specified format', type=str, default='feature', choices=['tabular','genbank','feature'])
 	args = parser.parse_args()
@@ -170,11 +155,6 @@ if __name__ == '__main__':
 
 	genbank = File(args.infile)
 	for locus in genbank:
-		#if not args.dump:
-		#	args.outfile.print('LOCUS       ')
-		#	args.outfile.print(locus.groups['LOCUS'][0])
-		#	args.outfile.print('FEATURES\n')
-		#for codon,rarity in locus.codon_rarity().items():print(codon, rarity, sep='\t')
 		locus.init(args)
 		args.locus = locus
 		locus.args = args
@@ -182,7 +162,6 @@ if __name__ == '__main__':
 		for curr in sorted(locus.features(include='CDS')):
 			best = dict()
 			if last and last.strand == curr.strand:
-				#if False:
 				for metrics in locus.get_metrics(last, curr):
 					if args.dump:
 						dump(args, last, curr, metrics)
