@@ -71,7 +71,7 @@ def fix_pairs(tup):
 
 def strr(x):
     if isinstance(x, float):
-        return str(round(x,6))
+        return str(round(x,4))
     else:
         return str(x)
 
@@ -93,7 +93,7 @@ def alert(args, last, curr, metrics):
 	feature.tags['ribosomal_slippage'] = [None]
 	feature.tags['direction'] =  [metrics['DIR']]
 	feature.tags['motif'] = [args.locus.number_motif(metrics['MOTIF']).__name__]
-	feature.tags['bases'] = [metrics['BASES']]
+	feature.tags['bases'] = [metrics['SLIPSITE']]
 	feature.tags['label'] = [metrics['LABEL']]
 	feature.tags['locus'] = [args.locus.name()]
 	#feature.tags['location'] = [metrics['LOC']]
@@ -107,8 +107,9 @@ flag = True
 def dump(args, last, curr, metrics):
 	global flag
 	if flag:
-		args.outfile.print('GENOME\t')
-		args.outfile.print('\t'.join(map(str,metrics.keys())))
+		args.outfile.print('GENOME'.ljust(len(args.locus.name()),' '))
+		args.outfile.print('\t')
+		args.outfile.print('\t'.join([key.ljust(5,' ') for key in map(str,metrics.keys())]))
 		args.outfile.print('\n')
 		flag = False
 	args.outfile.print(args.locus.name())
@@ -137,9 +138,10 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='', formatter_class=argparse.RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
-	parser.add_argument('-d', '--dump', action="store_true")
-	parser.add_argument('-m', '--model', type=str) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	parser.add_argument('-f', '--format', help='Output the features in the specified format', type=str, default='feature', choices=['tabular','genbank','feature'])
+	parser.add_argument('-s', '--scale', type=float, default=1.0, help="parameter to scale the MFE scores by [1.0]")
+	parser.add_argument('-d', '--dump', action="store_true", help="flag to dump out the various cellular property metrics that are used for prediction")
+	parser.add_argument('-m', '--model', type=str, help=argparse.SUPPRESS) #, default='DP03', choices=['DP03','DP09','CC06','CC09'], help="parameter set [DP03]")
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
 	

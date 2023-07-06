@@ -137,7 +137,7 @@ class Locus(Locus, feature=Feature):
 		a1 = seq[ j+0+d : j+3+d  ]
 		# metrics
 		#metrics['GC']   = self.gc_content()
-		metrics['BASES'] = e0+p0+a0
+		metrics['SLIPSITE'] = e0+p0+a0
 		metrics['LOC']   = None
 		metrics['LABEL'] = 0
 		metrics['N']     = None
@@ -186,11 +186,11 @@ class Locus(Locus, feature=Feature):
 				s = seq[  j+o     : j+o+w   ].upper().replace('T','U')
 				#metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
 				#metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
-				mfe = lf.fold(s)[1]
+				mfe = lf.fold(s)[1] * self.args.scale
 				metrics['LF%sR%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
 				#metrics['GC%s' % w] = self.gc_content(s)
 				#metrics['LF%s' % w] = mfe/len(s)
-				mfe = hk.fold(s, self.model)[1]
+				mfe = hk.fold(s, self.model)[1] * self.args.scale
 				metrics['HK%sR%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
 				#metrics['HK%s' % w] = mfe/len(s)
 		return metrics
