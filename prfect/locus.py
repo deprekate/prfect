@@ -23,7 +23,6 @@ def rround(item, n=4):
         except:
             return item
 
-
 class Locus(Locus, feature=Feature):
 	#def __init__(self,parent, *args, **kwargs):
 		#self = dict(parent)
@@ -62,7 +61,6 @@ class Locus(Locus, feature=Feature):
 	
 		d = (curr.left() - last.left() + 1) % 3  - 1
 		if not d: return
-
 		# this step finds the maximum possible region between two adjacent genes
 		# where a frameshift could occur: before the stop codon of the first preceding
 		# gene and after the furthest upstream stop codon of the following second gene

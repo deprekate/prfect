@@ -6,6 +6,11 @@ class Feature(Feature):
 	def more(self):
 		return "mooore"
 
+	def nested_inside(self, other):
+		if other and other.left() < self.left() and other.right() > self.right():
+			return True
+		return False
+
 	def nearest_start(self):
 		if self.strand > 0:
 			return self.locus.locations.nearest_start(self.left(),'+')

@@ -145,13 +145,12 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	args.outfile.print = _print.__get__(args.outfile)
 	
-	if args.dump:
-		pass
-	elif args.model and not args.dump:
+	if args.model:
 		clf = pickle.load(open(args.model, 'rb'))
 	else:
 		clf = pickle.load(open(path, 'rb'))
 
+	
 	genbank = File(args.infile)
 	for locus in genbank:
 		locus.init(args)
@@ -160,15 +159,23 @@ if __name__ == '__main__':
 		last = curr = _last = _curr = None
 		for curr in sorted(locus.features(include='CDS')):
 			best = dict()
+			'''
+			if curr.nested_inside(last):
+				next = last
+			if not curr.nested_inside(next):
+				next = None
+			'''
+			#print(curr,last,next)
 			if last and last.strand == curr.strand:
 				for metrics in locus.get_metrics(last, curr):
-					if args.dump:
-						dump(args, last, curr, metrics)
-					elif has_prf(metrics):
+					if has_prf(metrics):
 						if not best or metrics['prob'] > best['prob']:
 							best = metrics
-				if best:
+					if args.dump:
+						dump(args, last, curr, metrics)
+				if best and not args.dump:
 					alert(args, last, curr, best)
+					flag = False
 					pass
 			if curr.is_joined():
 				for pairs in pairwise(curr.pairs):
@@ -185,13 +192,14 @@ if __name__ == '__main__':
 								metrics['LABEL'] = 1
 							else:
 								metrics['LABEL'] = -1
-							if args.dump:
-								dump(args, _last, _curr, metrics)
-							elif has_prf(metrics):
+							if has_prf(metrics):
 								if not best or metrics['prob'] > best['prob']:
 									best = metrics
-						if best:
+							if args.dump:
+								dump(args, _last, _curr, metrics)
+						if best and not args.dump:
 							alert(args, _last, _curr, best)
+							flag = False
 						elif not args.dump:
 							curr.write(args.outfile)
 							pass
@@ -202,5 +210,7 @@ if __name__ == '__main__':
 			last = curr
 		if not args.dump:
 			#args.outfile.print('//\n')
+			if not flag:
+				print('nope')
 			pass
 
