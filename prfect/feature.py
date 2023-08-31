@@ -6,6 +6,12 @@ class Feature(Feature):
 	def more(self):
 		return "mooore"
 
+	def end(self):
+		if self.strand > 0:
+			return self.right()
+		else:
+			return self.left()
+
 	def nested_inside(self, other):
 		if other and other.left() < self.left() and other.right() > self.right():
 			return True

@@ -15,13 +15,18 @@ def rint(s):
 
 
 def rround(item, n=4):
-    try:
-        return round(item, n)
-    except:
-        try:
-            return item.decode()
-        except:
-            return item
+	try:
+		return round(item, n)
+	except:
+		try:
+			return item.decode()
+		except:
+			return item
+
+def gc(seq):
+	c = seq.count('c') + seq.count('C')
+	g = seq.count('g') + seq.count('G')
+	return (c+g) / len(seq)
 
 class Locus(Locus, feature=Feature):
 	#def __init__(self,parent, *args, **kwargs):
@@ -38,8 +43,18 @@ class Locus(Locus, feature=Feature):
 		self.forward_motifs  = [is_four, is_three]
 		self.motifs = self.backward_motifs + self.forward_motifs
 		self.stops = ['taa','tga','tag']
-
-		# initialize everything first
+		# REMOVE DUPLICATE GENES
+		seen = dict()
+		for feature in sorted(self.features(include='CDS')):
+			if feature.end() in seen:
+				other = seen[feature.end()]
+				if feature.length() > other.length():
+					del self[other]
+				else:
+					del self[feature]
+					feature = other
+			seen[feature.end()] = feature
+		# INITIALIZE EVERYTHING
 		path = os.path.dirname(hk.__file__)
 		param = "parameters_DP09.txt"
 		self.model = 'DP'
@@ -51,13 +66,14 @@ class Locus(Locus, feature=Feature):
 	
 	def number_motif(self, number):
 		# sklearn requires factors to be encoded into integers
-		return self.motifs[number]
+		return self.motifs[number].__name__.replace('is_','')
 
 	def score_rbs(self, rbs):
 		return self._rbs.score_init_rbs(rbs,20)[0]
 
 	def get_metrics(self, last, curr):
-		assert last.strand==curr.strand , "different strands"
+		if not last or not curr or last.strand!=curr.strand: return
+		#assert last.strand==curr.strand , "different strands"
 	
 		d = (curr.left() - last.left() + 1) % 3  - 1
 		if not d: return
@@ -134,7 +150,6 @@ class Locus(Locus, feature=Feature):
 		p1 = seq[ j-3+d : j+0+d  ]
 		a1 = seq[ j+0+d : j+3+d  ]
 		# metrics
-		#metrics['GC']   = self.gc_content()
 		metrics['SLIPSITE'] = e0+p0+a0
 		metrics['LOC']   = None
 		metrics['LABEL'] = 0
@@ -182,15 +197,10 @@ class Locus(Locus, feature=Feature):
 
 				# RIGHT
 				s = seq[  j+o     : j+o+w   ].upper().replace('T','U')
-				#metrics['LF%sR%s' % (w,o)] = lf.fold(s      )[1] / len(s) / self.gc_content(s) if s else 0
-				#metrics['HK%sR%s' % (w,o)] = hk.fold(s, self.model)[1] / len(s) / self.gc_content(s) if s else 0
 				mfe = lf.fold(s)[1] * self.args.scale
-				metrics['LF%sR%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
-				#metrics['GC%s' % w] = self.gc_content(s)
-				#metrics['LF%s' % w] = mfe/len(s)
+				metrics['LF%sR%s' % (w,o) ] = mfe / len(s) / gc(s) if len(s) and gc(s) else 0
 				mfe = hk.fold(s, self.model)[1] * self.args.scale
-				metrics['HK%sR%s' % (w,o)] = mfe / len(s) / self.gc_content(s) if len(s) and self.gc_content(s) else 0
-				#metrics['HK%s' % w] = mfe/len(s)
+				metrics['HK%sR%s' % (w,o) ] = mfe / len(s) / gc(s) if len(s) and gc(s) else 0
 		return metrics
 
 	def has_backward_motif(self, seq):

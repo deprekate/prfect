@@ -71,7 +71,7 @@ def fix_pairs(tup):
 
 def strr(x):
     if isinstance(x, float):
-        return str(round(x,4))
+        return str(round(x,3))
     else:
         return str(x)
 
@@ -92,7 +92,7 @@ def alert(args, last, curr, metrics):
 	
 	feature.tags['ribosomal_slippage'] = [None]
 	feature.tags['direction'] =  [metrics['DIR']]
-	feature.tags['motif'] = [args.locus.number_motif(metrics['MOTIF']).__name__]
+	feature.tags['motif'] = [args.locus.number_motif(metrics['MOTIF'])]
 	feature.tags['bases'] = [metrics['SLIPSITE']]
 	feature.tags['label'] = [metrics['LABEL']]
 	feature.tags['locus'] = [args.locus.name()]
@@ -103,18 +103,30 @@ def alert(args, last, curr, metrics):
 	if args.format == 'feature':
 		feature.write(args.outfile)
 
-flag = True
+header = True
 def dump(args, last, curr, metrics):
-	global flag
-	if flag:
-		args.outfile.print('GENOME'.ljust(len(args.locus.name()),' '))
+	global header
+	motif = args.locus.number_motif(metrics.pop('MOTIF'))
+	if header:
+		keys = list(metrics.keys())
+		args.outfile.print('LOCUS'.ljust(len(args.locus.name()),' '))
 		args.outfile.print('\t')
-		args.outfile.print('\t'.join([key.ljust(5,' ') for key in map(str,metrics.keys())]))
+		args.outfile.print('\t'.join([key.replace('R3','').ljust(5,' ') for key in map(str,keys)]))
+		args.outfile.print('\t')
+		args.outfile.print('MOTIF'.ljust(10))
+		args.outfile.print('\t')
+		args.outfile.print('GENES'.ljust(10))
 		args.outfile.print('\n')
-		flag = False
+		header = False
 	args.outfile.print(args.locus.name())
 	args.outfile.print('\t')
 	args.outfile.print('\t'.join(map(strr,metrics.values())))
+	args.outfile.print('\t')
+	args.outfile.print(motif.ljust(10))
+	args.outfile.print('\t')
+	args.outfile.print('..'.join(list(last.pairs[0])))
+	args.outfile.print(',')
+	args.outfile.print('..'.join(list(curr.pairs[0])))
 	args.outfile.print('\n')
 
 def _print(self, item):
@@ -150,33 +162,31 @@ if __name__ == '__main__':
 	else:
 		clf = pickle.load(open(path, 'rb'))
 
-	
+	has = False	
 	genbank = File(args.infile)
 	for locus in genbank:
 		locus.init(args)
 		args.locus = locus
 		locus.args = args
-		last = curr = _last = _curr = None
+		last = curr = nest = _last = _curr = None
 		for curr in sorted(locus.features(include='CDS')):
-			best = dict()
-			'''
 			if curr.nested_inside(last):
-				next = last
-			if not curr.nested_inside(next):
-				next = None
-			'''
-			#print(curr,last,next)
-			if last and last.strand == curr.strand:
-				for metrics in locus.get_metrics(last, curr):
-					if has_prf(metrics):
-						if not best or metrics['prob'] > best['prob']:
-							best = metrics
-					if args.dump:
-						dump(args, last, curr, metrics)
-				if best and not args.dump:
-					alert(args, last, curr, best)
-					flag = False
-					pass
+				nest = last
+			elif not curr.nested_inside(nest):
+				nest = None
+			for _last,_curr in set( ((last,curr),(nest,curr),(curr,nest)) ):
+				best = dict()
+				if _last and _curr and _last.strand == _curr.strand:
+					for metrics in locus.get_metrics(_last, _curr):
+						if has_prf(metrics):
+							has = True
+							if not best or metrics['prob'] > best['prob']:
+								best = metrics
+						if args.dump:
+							dump(args, _last, _curr, metrics)
+					if best and not args.dump:
+						alert(args, _last, _curr, best)
+
 			if curr.is_joined():
 				for pairs in pairwise(curr.pairs):
 					best = dict()
@@ -193,24 +203,17 @@ if __name__ == '__main__':
 							else:
 								metrics['LABEL'] = -1
 							if has_prf(metrics):
+								has = True
 								if not best or metrics['prob'] > best['prob']:
 									best = metrics
 							if args.dump:
 								dump(args, _last, _curr, metrics)
 						if best and not args.dump:
 							alert(args, _last, _curr, best)
-							flag = False
 						elif not args.dump:
 							curr.write(args.outfile)
-							pass
 				curr = _curr
-			elif not best and not args.dump:
-				#curr.write(args.outfile)
-				pass
 			last = curr
-		if not args.dump:
-			#args.outfile.print('//\n')
-			if not flag:
-				print('nope')
-			pass
+if not has and not args.dump:
+	print('no PRFs detected')
 
