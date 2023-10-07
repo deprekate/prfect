@@ -166,6 +166,7 @@ if __name__ == '__main__':
 	genbank = File(args.infile)
 	for locus in genbank:
 		locus.init(args)
+		locus.dna = locus.dna.lower()
 		args.locus = locus
 		locus.args = args
 		last = curr = nest = _last = _curr = None
