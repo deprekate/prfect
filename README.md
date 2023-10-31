@@ -80,7 +80,7 @@ The columns are:
 LOCUS     id of the sequence
 SLIPSITE  bases of the slippery site
 LOC       location within the bases of the slippery site
-LABEL     shows whether the slippery site belongs to an already joined gene (used to measure true positive hits)
+LABEL     whether the slippery site is already annotated: 0 not a joined gene, 1 a joined gene, -1 a joined gene but is >10bp away 
 N         distance of the slippery site from the in-frame stop codon
 DIR       direction of the shift
 RBS1      Prodigal like ribosomal binding site interference score
