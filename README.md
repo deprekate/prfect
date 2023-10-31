@@ -1,6 +1,6 @@
 # prfect
-
 PRFect is a tool to predict programmed ribosomal frameshifting in eukaryotic, prokaryotic, and viral genomes
+
 
 The manuscript is currently in review and has been preprinted on bioRxiv:
 
@@ -54,3 +54,51 @@ $ prfect.py test/lambda.gbk
                      /product="minor tail protein G"
                      /product="tail assembly protein T"
 ```
+
+
+You can show all the slippery sites that PRFect checked to make sure it evaluated a given site and to see if there were any near hits.
+Using the `--dump` flag will show the calculated cellular properites at each potential slippery site:
+```
+$ prfect.py test/lambda.gbk --dump | head
+LOCUS      SLIPSITE   LOC  LABEL  N  DIR RBS1 RBS2  A0     A1     LF50    HK50    LF100   HK100  PRED  PROB  MOTIF
+NC_001416  gcaaaacgc  4278   0  159   1   13   1.8  0.015  0.025  -0.24   -0.236  -0.523  -0.306   0    1.0  three
+NC_001416  ggaaagtgt  10115  0   18  -1    2     0  0.004  0.024  -0.313  -0.287  -0.668  -0.404  -1   0.88  threethree  
+NC_001416  gcgaaagca  31034  0   30   1    2   1.0  0.029  0.032  -0.282  -0.243  -0.477  -0.326   0    1.0  three
+NC_001416  tggaaacgc  33370  0   72   1    1     0  0.015  0.028  -0.124  -0.118  -0.482  -0.36    0    1.0  three
+NC_001416  cgtaaatta  33388  0   90   1    0     0  0.009  0.012  -0.15   -0.138  -0.291  -0.237   0    1.0  three
+NC_001416  gcagggtgg  33442  0  144   1    0     0  0.017  0.021  -0.092  -0.039  -0.388  -0.274   0    1.0  three
+NC_001416  gaaaaggag  42081  0   42  -1    0     0  0.027  0.013  -0.246  -0.149  -0.176  -0.105   0    1.0  twofour
+NC_001416  aaaaccttc  42206  0   66  -1    0     0  0.015  0.014  -0.403  -0.266  -0.367  -0.249   0    1.0  fivetwo
+NC_001416  cgaaaaaat  43240  0    6   1    2     0  0.019  0.023  -0.513  -0.245  -0.395  -0.294   0   0.98  four
+```
+
+
+
+
+The columns are:
+```
+LOCUS     id of the sequence
+SLIPSITE  bases of the slippery site
+LOC       location within the bases of the slippery site
+LABEL     shows whether the slippery site belongs to an already joined gene (used to measure true positive hits)
+N         distance of the slippery site from the in-frame stop codon
+DIR       direction of the shift
+RBS1      Prodigal like ribosomal binding site interference score
+RBS2      RAST like ribosomal binding site interference score
+A0        frequency of the A-site codon usage in all genes
+A1        frequency of the +1 A-site codon usage in all genes
+LF50      normalized LinearFold minimum free energy calculation of the downstream 50bp window
+LF100     normalized LinearFold minimum free energy calculation of the downstream 100bp window
+HK50      normalized HotKnots minimum free energy calculation of the downstream 50bp window
+HK100     normalized HotKnots minimum free energy calculation of the downstream 100bp window
+PRED      type of shift predicted by PRFect to occur: -1 backwards, 0 no shift, +1 forwards
+PROB      how sure PRFect was for the predicted (PRED) type
+MOTIF     slippery sequence motif
+```
+
+
+
+
+
+
+
