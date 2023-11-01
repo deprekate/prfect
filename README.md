@@ -7,11 +7,11 @@ The manuscript is currently in review and has been preprinted on bioRxiv:
 https://www.biorxiv.org/content/10.1101/2023.04.10.536325v1
 <br>
 
-It takes as input the genome and its annotated CoDing Sequence (CDS) as a GenBank file. It 
+It takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file. It 
 searches through the file looking for 8 different slippery site motifs associated with
 backwards (-1) frameshifts and two motifs associated with forward (+1) frameshifts. When
 a motif is encountered, various cellular properties and contributing factors are assessed and
-a prediction is made whether the site is indeed involved in programmed ribosomal frameshifting.
+a prediction is made whether the site is involved in programmed ribosomal frameshifting.
 <br>
 <br>
 To install:
