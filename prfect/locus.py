@@ -152,7 +152,7 @@ class Locus(Locus, feature=Feature):
 		# metrics
 		metrics['SLIPSITE'] = e0+p0+a0
 		metrics['LOC']   = None
-		metrics['LABEL'] = 0
+		metrics['LABEL'] = None
 		metrics['N']     = None
 		metrics['DIR']   = d
 		metrics['RBS1']  = prodigal_score_rbs(r)

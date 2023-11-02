@@ -191,18 +191,16 @@ if __name__ == '__main__':
 			if curr.is_joined():
 				for pairs in pairwise(curr.pairs):
 					best = dict()
+					loc = (int(pairs[0][-1]) + int(pairs[-1][0])) / 2
 					pairs = fix_pairs(pairs)
 					_last = Feature(curr.type, curr.strand, [pairs[0]], locus, curr.tags)
 					_curr = Feature(curr.type, curr.strand, [pairs[1]], locus, curr.tags)
 					# skip CDS with locations seperated by more than 10bp
 					if abs(_curr.left() - _last.right()) < 10:
 						for metrics in locus.get_metrics(_last, _curr):
-							loc = (_last.right() + _curr.left()) // 2
+							#loc = (_last.right() + _curr.left() + 4 ) / 2
 							# the location of the slippery site has to be within 10bp of annotation
-							if loc-10 < metrics['LOC']-3 < loc+10: 
-								metrics['LABEL'] = 1
-							else:
-								metrics['LABEL'] = -1
+							metrics['LABEL'] = metrics['LOC'] - loc 
 							if has_prf(metrics):
 								has = True
 								if not best or metrics['prob'] > best['prob']:
