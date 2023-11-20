@@ -2,7 +2,7 @@
 PRFect is a tool to predict programmed ribosomal frameshifting in eukaryotic, prokaryotic, and viral genomes
 
 
-The manuscript is currently in review and has been preprinted on bioRxiv:
+The manuscript is currently in review (has been accepted) and has been preprinted on bioRxiv:
 
 https://www.biorxiv.org/content/10.1101/2023.04.10.536325v1
 <br>
