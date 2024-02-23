@@ -2,12 +2,13 @@
 PRFect is a tool to predict programmed ribosomal frameshifting in eukaryotic, prokaryotic, and viral genomes
 
 
-The manuscript is currently in review (has been accepted) and has been preprinted on bioRxiv:
+The published manuscript is available at:
+https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05701-0
 
-https://www.biorxiv.org/content/10.1101/2023.04.10.536325v1
+
 <br>
 
-It takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file. It 
+PRFect takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file. It 
 searches through the file looking for 8 different slippery site motifs associated with
 backwards (-1) frameshifts and two motifs associated with forward (+1) frameshifts. When
 a motif is encountered, various cellular properties and contributing factors are assessed and
@@ -16,7 +17,7 @@ a prediction is made whether the site is involved in programmed ribosomal frames
 <br>
 To install:
 ```
-pip3 install prfect
+pip install prfect
 ```
 To run:
 ```
