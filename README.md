@@ -102,7 +102,14 @@ MOTIF     slippery sequence motif
 ```
 
 
-
+You can even use the flag `-s` to scale the MFE calculations to account for extreme GCcontent/temp/salinity:
+```
+$ prfect.py test/lambda.gbk -s 1.5 --dump | head -n 2
+LOCUS      SLIPSITE   LOC  LABEL  N  DIR RBS1 RBS2  A0     A1     LF50    HK50    LF100   HK100  PRED  PROB  MOTIF
+NC_001416  gcaaaacgc  4278   0  159   1   13   1.8  0.015  0.025  -0.36   -0.354  -0.785  -0.459   0    1.0  three
+NC_001416  ggaaagtgt  10115  0   18  -1    2     0  0.004  0.024  -0.47   -0.431  -1.002  -0.606  -1  0.999  threethree  
+```
+you will notice that the MFE values were scaled by 50% when compared to the above dump, which also caused the trained model to be more confident in the backward -1 PREDiction at LOCation 10115
 
 
 
