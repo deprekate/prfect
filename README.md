@@ -8,13 +8,17 @@ https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05701-0
 
 <br>
 
-PRFect takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file. It 
-searches through the file looking for 8 different slippery site motifs associated with
+PRFect takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp; *If you only have a fasta file we recommend our brand new gene caller [Genotate](https://github.com/deprekate/genotate) that is* <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *the only gene caller that can call gene fragments*
+
+PRFect searches through a GenBank file looking for 8 different slippery site motifs associated with
 backwards (-1) frameshifts and two motifs associated with forward (+1) frameshifts. When
-a motif is encountered, various cellular properties and contributing factors are assessed and
+a motif is encountered, various cellular properties and factors are assessed and
 a prediction is made whether the site is involved in programmed ribosomal frameshifting.
+
 <br>
-<br>
+
 To install:
 ```
 pip install prfect
