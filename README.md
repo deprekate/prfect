@@ -2,21 +2,26 @@
 PRFect is a tool to predict programmed ribosomal frameshifting in eukaryotic, prokaryotic, and viral genomes
 
 
-The manuscript is currently in review and has been preprinted on bioRxiv:
+The published manuscript is available at:
+https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05701-0
 
-https://www.biorxiv.org/content/10.1101/2023.04.10.536325v1
+
 <br>
 
-It takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file. It 
-searches through the file looking for 8 different slippery site motifs associated with
+PRFect takes as input the genome and its annotated CoDing Sequences (CDS) as a GenBank file.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp; *If you only have a fasta file we recommend our brand new gene caller [Genotate](https://github.com/deprekate/genotate) that is* <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *the only gene caller that can call gene fragments*
+
+PRFect searches through a GenBank file looking for 8 different slippery site motifs associated with
 backwards (-1) frameshifts and two motifs associated with forward (+1) frameshifts. When
-a motif is encountered, various cellular properties and contributing factors are assessed and
+a motif is encountered, various cellular properties and factors are assessed and
 a prediction is made whether the site is involved in programmed ribosomal frameshifting.
+
 <br>
-<br>
+
 To install:
 ```
-pip3 install prfect
+pip install prfect
 ```
 To run:
 ```
@@ -97,7 +102,14 @@ MOTIF     slippery sequence motif
 ```
 
 
-
+You can even use the flag `-s` to scale the MFE calculations to account for extreme GCcontent/temp/salinity:
+```
+$ prfect.py test/lambda.gbk -s 1.5 --dump | head -n 2
+LOCUS      SLIPSITE   LOC  LABEL  N  DIR RBS1 RBS2  A0     A1     LF50    HK50    LF100   HK100  PRED  PROB  MOTIF
+NC_001416  gcaaaacgc  4278   0  159   1   13   1.8  0.015  0.025  -0.36   -0.354  -0.785  -0.459   0    1.0  three
+NC_001416  ggaaagtgt  10115  0   18  -1    2     0  0.004  0.024  -0.47   -0.431  -1.002  -0.606  -1  0.999  threethree  
+```
+you will notice that the MFE values were scaled by 50% when compared to the above dump, which also caused the trained model to be more confident in the backward -1 PREDiction at LOCation 10115
 
 
 
