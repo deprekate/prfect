@@ -138,6 +138,7 @@ def _print(self, item):
 def has_prf(metrics):
 	global clf
 	row = pd.DataFrame.from_dict(metrics,orient='index').T
+	clf._preprocessor = None
 	prob = clf.predict_proba(row.loc[:,clf.feature_names_in_])
 	metrics['pred'] = clf.classes_[np.argmax(prob)]
 	metrics['prob'] = np.max(prob)

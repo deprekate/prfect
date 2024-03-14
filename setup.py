@@ -53,7 +53,7 @@ def main():
 		python_requires='>3.5.2',
 		packages=find_packages(),
 		package_data = {'': ['*.pkl'],},
-		install_requires=['scikit-learn>=0.24.0','sklearn','numpy','pandas','genbank','LinearFold','hotknots','score_rbs', 'packaging'],
+		install_requires=['scikit-learn>=0.24.0','numpy','pandas','genbank','LinearFold','hotknots','score_rbs', 'packaging'],
 		#ext_modules = [module],
 	)
 
