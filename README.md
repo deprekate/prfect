@@ -21,7 +21,7 @@ a prediction is made whether the site is involved in programmed ribosomal frames
 
 To install:
 ```
-pip install prfect
+python3 -m pip install prfect
 ```
 To run:
 ```
