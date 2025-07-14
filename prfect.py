@@ -196,8 +196,8 @@ if __name__ == '__main__':
 					pairs = fix_pairs(pairs)
 					_last = Feature(curr.type, curr.strand, [pairs[0]], locus, curr.tags)
 					_curr = Feature(curr.type, curr.strand, [pairs[1]], locus, curr.tags)
-					# skip CDS with locations seperated by more than 10bp
-					if abs(_curr.left() - _last.right()) < 10:
+					# skip CDS with locations separated by more than 12bp
+					if abs(_curr.left() - _last.right()) < 12:
 						for metrics in locus.get_metrics(_last, _curr):
 							#loc = (_last.right() + _curr.left() + 4 ) / 2
 							# the location of the slippery site has to be within 10bp of annotation

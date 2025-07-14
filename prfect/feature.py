@@ -8,7 +8,7 @@ class Feature(Feature):
 
 	def end(self):
 		if self.strand > 0:
-			return self.right()
+			return self.right() - 2
 		else:
 			return self.left()
 
@@ -21,23 +21,23 @@ class Feature(Feature):
 		if self.strand > 0:
 			return self.locus.locations.nearest_start(self.left(),'+')
 		else:
-			return self.locus.locations.nearest_start(self.right(),'-')
+			return self.locus.locations.nearest_start(self.right()-2,'-')
 
 	def nearest_stop(self):
 		if self.strand < 0:
 			return self.locus.locations.nearest_stop(self.left(),'-')
 		else:
-			return self.locus.locations.nearest_stop(self.right(),'+')
+			return self.locus.locations.nearest_stop(self.right()-2,'+')
 
 	def start_distance(self):
 		if self.strand > 0:
 			return self.left() - self.nearest_start()
 		else:
-			return self.nearest_start() - (self.right())
+			return self.nearest_start() - (self.right()-2)
 
 	def stop_distance(self):
 		if self.strand > 0:
-			return self.nearest_stop() - (self.right())
+			return self.nearest_stop() - (self.right()-2)
 		else:
 			return self.left() - self.nearest_stop()
 
