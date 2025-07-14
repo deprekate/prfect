@@ -27,7 +27,7 @@ To run:
 ```
 prfect.py input.gbk
 ```
-An example genome for SARS-Cov2 is provided in the test folder. The SARS-Cov2 genome contains 12 genes the first of which happens to be a PRF gene and is denoted as such through the use of the `join` keyword.  Any genes already present that use the `join` keyword are split into their two parts and subsequently predicted anew and then tagged with the /label=1 feature tag to indicate a TruePositive.  When the genome is run through PRFect the known PRF gene is correctly predicted to utilize programmed ribosomal frameshifting.
+An example genome for SARS-Cov2 is provided in the test folder. The SARS-Cov2 genome contains 12 genes the first of which happens to be a PRF gene and is denoted as such through the use of the `join` keyword.  Any genes already present in the input GenBank file that use the `join` keyword are split into their two parts and subsequently predicted anew and then tagged with the /label=1 feature tag to indicate a TruePositive.  When the genome is run through PRFect the known PRF gene is correctly predicted to utilize programmed ribosomal frameshifting.
 
 ```
 $ prfect.py test/covid19.gbk 
